@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="referrer" content="origin" />
+  <title>SyncParty</title>
+
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+  <script src="https://www.youtube.com/iframe_api"></script>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+    body { background: #f8fafc; color: #0f172a; display: flex; justify-content: center; padding: 12px; min-height: 100vh; }
+    .container { width: 100%; max-width: 520px; display: flex; flex-direction: column; gap: 10px; }
+
+    /* Top Bar */
+    .header { display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 10px 14px; border-radius: 12px; border: 1px solid #e2e8f0; }
+    .logo { font-size: 16px; font-weight: 700; color: #2563eb; display: flex; align-items: center; gap: 6px; }
+    .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: #64748b; text-transform: uppercase; }
+    .badge.on { background: #dcfce7; color: #16a34a; }
+
+    /* Cards */
+    .card { background: #ffffff; padding: 14px; border-radius: 12px; border: 1px solid #e2e8f0; display: flex; flex-direction: column; gap: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.02); }
+    .title { font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+
+    /* Inputs & Buttons */
+    .row { display: flex; gap: 8px; width: 100%; }
+    input { flex: 1; min-width: 0; padding: 9px 12px; font-size: 14px; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none; background: #f8fafc; }
+    input:focus { border-color: #2563eb; background: #ffffff; }
+    .pin-input { font-size: 18px; font-weight: 700; letter-spacing: 3px; text-align: center; }
+
+    button { padding: 9px 14px; font-size: 13px; font-weight: 600; border-radius: 8px; border: none; background: #2563eb; color: #ffffff; cursor: pointer; white-space: nowrap; }
+    button:active { transform: scale(0.98); }
+    button.gray { background: #f1f5f9; color: #334155; }
+    button.outline { background: transparent; border: 1px solid #cbd5e1; color: #475569; }
+
+    .sep { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 600; }
+    .sep::before, .sep::after { content: ''; flex: 1; border-bottom: 1px solid #e2e8f0; }
+    .sep:not(:empty)::before { margin-right: 10px; }
+    .sep:not(:empty)::after { margin-left: 10px; }
+
+    /* Theater Room */
+    #theaterRoom { display: none; flex-direction: column; gap: 10px; }
+
+    /* Video Player */
+    .player-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #000; border-radius: 12px; overflow: hidden; }
+    #ytPlayer { width: 100%; height: 100%; }
+    .control-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 2px; }
+
+    /* Search Results */
+    .results-list { max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .item { display: flex; gap: 10px; padding: 6px; border-radius: 8px; background: #f8fafc; cursor: pointer; border: 1px solid #e2e8f0; }
+    .item:hover { background: #eff6ff; }
+    .item img { width: 80px; height: 48px; border-radius: 6px; object-fit: cover; background: #cbd5e1; flex-shrink: 0; }
+    .item-info { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+    .item-t { font-size: 12px; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .item-c { font-size: 11px; color: #64748b; margin-top: 2px; }
+
+    /* Chat Section */
+    .chat-box { display: flex; flex-direction: column; gap: 8px; }
+    .chat-logs { height: 130px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding: 4px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; }
+    .msg { max-width: 80%; padding: 6px 10px; font-size: 12px; border-radius: 8px; word-break: break-word; line-height: 1.4; }
+    .msg.me { align-self: flex-end; background: #2563eb; color: #fff; }
+    .msg.them { align-self: flex-start; background: #e2e8f0; color: #0f172a; }
+    .info-bar { font-size: 11px; color: #64748b; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="logo">▶ SyncParty</div>
+      <div id="stat" class="badge">Lobby</div>
+    </div>
+
+    <!-- 1. Lobby Screen -->
+    <div id="lobbyRoom" class="card">
+      <div>
+        <div class="title">Your 5-Digit PIN</div>
+        <div class="row" style="margin-top: 6px;">
+          <input id="myPin" class="pin-input" readonly placeholder="Generating..." />
+          <button class="gray" onclick="copyPin()">Copy</button>
+        </div>
+      </div>
+
+      <div class="sep">OR</div>
+
+      <div>
+        <div class="title">Friend's PIN</div>
+        <div class="row" style="margin-top: 6px;">
+          <input id="friendPin" class="pin-input" type="number" placeholder="Enter PIN" />
+          <button onclick="connectFriend()">Join Room</button>
+        </div>
+      </div>
+
+      <div class="sep">OR</div>
+
+      <button class="outline" onclick="openSolo()">Watch Solo</button>
+    </div>
+
+    <!-- 2. Theater Room (Connect hone par dikhega) -->
+    <div id="theaterRoom">
+      <!-- Search & URL -->
+      <div class="card">
+        <div class="title">Search Video or Paste Link</div>
+        <div class="row">
+          <input id="searchBox" placeholder="Song title or YouTube link..." onkeydown="if(event.key==='Enter') searchOrPlay()" />
+          <button onclick="searchOrPlay()">Go</button>
+        </div>
+        <div id="searchList" class="results-list" style="display: none;"></div>
+      </div>
+
+      <!-- Player Box -->
+      <div id="playerBox" class="player-wrap">
+        <div id="ytPlayer"></div>
+      </div>
+
+      <!-- Control Bar -->
+      <div class="control-row">
+        <span id="logText" class="info-bar">Room active</span>
+        <button class="gray" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+      </div>
+
+      <!-- Live Chat Card -->
+      <div class="card chat-box">
+        <div class="title">Room Chat</div>
+        <div id="chatLogs" class="chat-logs"></div>
+        <div class="row">
+          <input id="chatInput" placeholder="Write message..." onkeydown="if(event.key==='Enter') sendChat()" />
+          <button onclick="sendChat()">Send</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let player, peer, conn, remote = false, lastTime = 0, currentVid = "dQw4w9WgXcQ", isPlayerReady = false;
+
+    // 1. Peer Setup
+    function init() {
+      const myPin = Math.floor(10000 + Math.random() * 90000);
+      document.getElementById('myPin').value = myPin;
+
+      peer = new Peer('sp5-' + myPin);
+
+      peer.on('connection', (c) => {
+        conn = c;
+        bindConnEvents();
+        unlockTheater('Connected ⚡');
+      });
+
+      peer.on('error', (err) => {
+        if (err.type === 'unavailable-id') init();
+      });
+    }
+
+    function connectFriend() {
+      const pin = document.getElementById('friendPin').value.trim();
+      if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
+      conn = peer.connect('sp5-' + pin);
+      bindConnEvents();
+      unlockTheater('Connected ⚡');
+    }
+
+    function openSolo() {
+      unlockTheater('Solo');
+    }
+
+    function unlockTheater(mode) {
+      document.getElementById('lobbyRoom').style.display = 'none';
+      document.getElementById('theaterRoom').style.display = 'flex';
+      
+      const stat = document.getElementById('stat');
+      stat.innerText = mode;
+      if (mode.includes('Connected')) stat.classList.add('on');
+
+      setupPlayer();
+    }
+
+    function bindConnEvents() {
+      conn.on('open', () => {
+        if (player && player.getCurrentTime) {
+          sendMsg({ t: 'V', id: currentVid, s: player.getCurrentTime(), p: player.getPlayerState() });
+        }
+      });
+      conn.on('data', handleIncoming);
+      conn.on('close', () => {
+        document.getElementById('stat').innerText = 'Solo';
+        document.getElementById('stat').classList.remove('on');
+        setLog('Friend disconnected');
+      });
+    }
+
+    function sendMsg(d) {
+      if (conn && conn.open && !remote) conn.send(d);
+    }
+
+    // 2. YouTube Player Setup
+    function setupPlayer() {
+      if (isPlayerReady) return;
+      player = new YT.Player('ytPlayer', {
+        videoId: currentVid,
+        playerVars: { playsinline: 1, rel: 0, origin: window.location.origin },
+        events: {
+          'onReady': () => {
+            isPlayerReady = true;
+            setInterval(checkSkip, 400);
+          },
+          'onStateChange': onState
+        }
+      });
+    }
+
+    function onState(e) {
+      if (remote) return;
+      const t = player.getCurrentTime();
+      if (e.data === 1) sendMsg({ t: 'PLAY', s: t });
+      if (e.data === 2) sendMsg({ t: 'PAUSE', s: t });
+    }
+
+    function checkSkip() {
+      if (!player?.getCurrentTime || remote) return;
+      const t = player.getCurrentTime();
+      if (Math.abs(t - lastTime) > 1.4) sendMsg({ t: 'SEEK', s: t });
+      lastTime = t;
+    }
+
+    // 3. Sync & Chat Receiver
+    function handleIncoming(d) {
+      if (d.t === 'MSG') {
+        appendChat(d.m, 'them');
+        return;
+      }
+
+      remote = true;
+      if (d.t === 'V') {
+        currentVid = d.id;
+        player.loadVideoById(d.id, d.s || 0);
+        if (d.p === 2) setTimeout(() => player.pauseVideo(), 200);
+        setLog('Video loaded by friend');
+      }
+      if (d.t === 'PLAY') {
+        if (Math.abs(player.getCurrentTime() - d.s) > 1) player.seekTo(d.s, true);
+        player.playVideo();
+      }
+      if (d.t === 'PAUSE') {
+        player.pauseVideo();
+        if (Math.abs(player.getCurrentTime() - d.s) > 1) player.seekTo(d.s, true);
+      }
+      if (d.t === 'SEEK') {
+        player.seekTo(d.s, true);
+        setLog('Skipped to ' + Math.floor(d.s) + 's');
+      }
+
+      setTimeout(() => {
+        remote = false;
+        if (player?.getCurrentTime) lastTime = player.getCurrentTime();
+      }, 500);
+    }
+
+    // 4. Chat Sender
+    function sendChat() {
+      const input = document.getElementById('chatInput');
+      const text = input.value.trim();
+      if (!text) return;
+
+      appendChat(text, 'me');
+      sendMsg({ t: 'MSG', m: text });
+      input.value = '';
+    }
+
+    function appendChat(text, sender) {
+      const box = document.getElementById('chatLogs');
+      const div = document.createElement('div');
+      div.className = `msg ${sender}`;
+      div.innerText = text;
+      box.appendChild(div);
+      box.scrollTop = box.scrollHeight;
+    }
+
+    // 5. Search & URL Loader
+    function extractId(url) {
+      const m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?/\s]{11})/);
+      return m ? m[1] : null;
+    }
+
+    async function searchOrPlay() {
+      const q = document.getElementById('searchBox').value.trim();
+      if (!q) return;
+
+      const directId = extractId(q);
+      if (directId) {
+        loadVideo(directId);
+        document.getElementById('searchList').style.display = 'none';
+        return;
+      }
+
+      const listEl = document.getElementById('searchList');
+      listEl.innerHTML = '<div style="font-size:12px;padding:6px;color:#64748b;">Searching...</div>';
+      listEl.style.display = 'flex';
+
+      const instances = [
+        'https://invidious.nerdvpn.de/api/v1/search?q=',
+        'https://yt.artemislena.eu/api/v1/search?q=',
+        'https://inv.tux.pizza/api/v1/search?q='
+      ];
+
+      let results = null;
+      for (let api of instances) {
+        try {
+          const res = await fetch(api + encodeURIComponent(q) + '&type=video');
+          if (res.ok) {
+            results = await res.json();
+            if (results && results.length) break;
+          }
+        } catch(e) {}
+      }
+
+      if (!results || !results.length) {
+        listEl.innerHTML = '<div style="font-size:12px;padding:6px;color:#ef4444;">Paste direct link!</div>';
+        return;
+      }
+
+      listEl.innerHTML = '';
+      results.slice(0, 5).forEach(v => {
+        const item = document.createElement('div');
+        item.className = 'item';
+        item.innerHTML = `
+          <img src="https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg" />
+          <div class="item-info">
+            <div class="item-t">${v.title}</div>
+            <div class="item-c">${v.author || 'YouTube'}</div>
+          </div>
+        `;
+        item.onclick = () => {
+          loadVideo(v.videoId);
+          listEl.style.display = 'none';
+        };
+        listEl.appendChild(item);
+      });
+    }
+
+    function loadVideo(id) {
+      currentVid = id;
+      player.loadVideoById(id, 0);
+      sendMsg({ t: 'V', id: id, s: 0, p: 1 });
+      setLog('Playing video');
+    }
+
+    // Helpers
+    function toggleFullscreen() {
+      const box = document.getElementById('playerBox');
+      if (!document.fullscreenElement) {
+        if (box.requestFullscreen) box.requestFullscreen();
+        else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen();
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    function copyPin() {
+      const pin = document.getElementById('myPin').value;
+      navigator.clipboard.writeText(pin);
+      alert('PIN Copied: ' + pin);
+    }
+
+    function setLog(t) { document.getElementById('logText').innerText = t; }
+
+    window.onload = init;
+  </script>
+</body>
+</html>
