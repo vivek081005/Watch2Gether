@@ -178,10 +178,10 @@
     .sep:not(:empty)::after { margin-left: 10px; }
 
     /* ============================================================
-       THEATER LAYOUT (SHURU ME 100% HIDDEN)
+       THEATER LAYOUT (STRICTLY HIDDEN BY DEFAULT)
        ============================================================ */
     #theaterRoom {
-      display: none;
+      display: none !important; /* Shuru me 100% hidden */
       flex-direction: column;
       gap: 10px;
     }
@@ -200,7 +200,6 @@
       padding: 2px 0 6px 0;
     }
 
-    /* SIRF SEARCH PAR UN-STICK */
     body.search-mode .sticky-player-box {
       position: static !important;
     }
@@ -383,8 +382,8 @@
       body { padding: 20px; }
       .container { max-width: 1300px; }
       
-      #theaterRoom {
-        display: none;
+      #theaterRoom.active {
+        display: grid !important;
         grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr);
         gap: 20px;
         align-items: start;
@@ -406,7 +405,7 @@
 </head>
 <body>
 
-  <!-- Floating Toast Notification (Only for Friend Disconnect) -->
+  <!-- Floating Alert Banner (Only for Friend Disconnect) -->
   <div id="toastNotification" class="toast-banner">
     <span>⚠️</span>
     <span id="toastMsg">Friend has left the room!</span>
@@ -510,9 +509,11 @@
   </div>
 
   <script>
-    let player = null, peer = null, conn = null, isRemoteAction = false, lastKnownTime = 0, currentVid = null;
+    let player = null, peer = null, conn = null, lastKnownTime = 0, currentVid = null;
     let suggestTimer = null, toastTimer = null;
     let isPlayerReady = false;
+    let ignoreUntil = 0; // Anti-Echo Lock
+    let isHost = false;
 
     // 1. Peer Setup & PIN Generator
     function init() {
@@ -523,6 +524,7 @@
 
       peer.on('connection', (c) => {
         conn = c;
+        isHost = true;
         bindConnEvents();
         unlockTheater('Connected ⚡', true);
       });
@@ -559,24 +561,43 @@
       });
     }
 
+    // Direct User Tap clears Mobile Autoplay Block
+    function primeMobileAutoplay() {
+      if (player && isPlayerReady) {
+        try {
+          player.unMute();
+          player.playVideo();
+          setTimeout(() => {
+            if (!currentVid) player.pauseVideo();
+          }, 50);
+        } catch(e) {}
+      }
+    }
+
     function connectFriend() {
       const pin = document.getElementById('friendPin').value.trim();
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
+      
+      primeMobileAutoplay(); // User Gesture Unlocks Audio Engine
+      
       conn = peer.connect('viku-' + pin);
+      isHost = false;
       bindConnEvents();
       unlockTheater('Connected ⚡', true);
     }
 
     function openSolo() {
+      primeMobileAutoplay();
       unlockTheater('Solo', false);
     }
 
-    // Unlock Theater Screen: User gesture clears autoplay restriction
+    // Unlock Theater Screen
     function unlockTheater(mode, showChat) {
-      document.getElementById('lobbyRoom').style.display = 'none';
+      document.getElementById('lobbyRoom').style.setProperty('display', 'none', 'important');
 
       const theater = document.getElementById('theaterRoom');
-      theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
+      theater.classList.add('active');
+      theater.style.setProperty('display', window.innerWidth >= 850 ? 'grid' : 'flex', 'important');
 
       document.getElementById('leaveBtn').style.display = 'inline-flex';
 
@@ -592,7 +613,8 @@
       }
     }
 
-    function leaveRoom() {
+    // Clean Fresh Reset (Prevents Browser Cache Glitch)
+    function resetToCleanLobby() {
       if (conn && conn.open) {
         conn.send({ cmd: 'FRIEND_LEFT' });
         conn.close();
@@ -606,8 +628,12 @@
       document.getElementById('welcomeScreen').style.display = 'flex';
 
       document.getElementById('chatLogs').innerHTML = '<div class="chat-watermark">VIKU</div>';
-      document.getElementById('theaterRoom').style.display = 'none';
-      document.getElementById('lobbyRoom').style.display = 'flex';
+      
+      const theater = document.getElementById('theaterRoom');
+      theater.classList.remove('active');
+      theater.style.setProperty('display', 'none', 'important');
+
+      document.getElementById('lobbyRoom').style.setProperty('display', 'flex', 'important');
       document.getElementById('leaveBtn').style.display = 'none';
 
       const stat = document.getElementById('stat');
@@ -617,6 +643,10 @@
       if (peer) peer.destroy();
       document.getElementById('friendPin').value = '';
       init();
+    }
+
+    function leaveRoom() {
+      resetToCleanLobby();
     }
 
     function showToast(msg) {
@@ -631,8 +661,15 @@
 
     window.addEventListener('resize', () => {
       const theater = document.getElementById('theaterRoom');
-      if (theater.style.display !== 'none') {
-        theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
+      if (theater.classList.contains('active')) {
+        theater.style.setProperty('display', window.innerWidth >= 850 ? 'grid' : 'flex', 'important');
+      }
+    });
+
+    // Enforce 100% clean entry on reload / bfcache visit
+    window.addEventListener('pageshow', (e) => {
+      if (e.persisted) {
+        resetToCleanLobby();
       }
     });
 
@@ -660,15 +697,20 @@
       showToast('Friend has left the room!');
     }
 
-    // Direct Instant Transmission (Zero Queueing)
+    // Direct Instant Transmission (Bypasses Echo Loops)
     function sendDirect(payload) {
-      if (conn && conn.open && !isRemoteAction) {
+      if (conn && conn.open && Date.now() > ignoreUntil) {
         conn.send(payload);
       }
     }
 
-    // 2. YouTube Player Setup (Instant RPC, Zero Clock Lag)
+    // 2. YouTube Player Setup
+    function onYouTubeIframeAPIReady() {
+      initPlayer();
+    }
+
     function initPlayer(callback) {
+      if (player) return;
       player = new YT.Player('ytPlayer', {
         height: '100%',
         width: '100%',
@@ -682,7 +724,8 @@
           'onReady': () => {
             isPlayerReady = true;
             try { player.unMute(); } catch(e){}
-            setInterval(checkInstantSeek, 150);
+            setInterval(checkInstantSeek, 100);
+            setInterval(hostDriftHeartbeat, 2000);
             if (callback) callback();
           },
           'onStateChange': onPlayerState
@@ -700,9 +743,10 @@
           startSeconds: startSeconds
         });
         if (autoPlay) {
+          player.unMute();
           player.playVideo();
         } else {
-          setTimeout(() => player.pauseVideo(), 150);
+          setTimeout(() => player.pauseVideo(), 100);
         }
       };
 
@@ -713,9 +757,9 @@
       }
     }
 
-    // Direct State Sync: Sends action immediately on touch
+    // Direct State Handler
     function onPlayerState(e) {
-      if (isRemoteAction || !player) return;
+      if (Date.now() < ignoreUntil || !player) return;
       const t = player.getCurrentTime();
 
       if (e.data === YT.PlayerState.PLAYING) {
@@ -725,12 +769,11 @@
       }
     }
 
-    // Fast 150ms Skip Detector
+    // Fast 100ms Instant Seek Detection
     function checkInstantSeek() {
-      if (!player || !isPlayerReady || isRemoteAction) return;
+      if (!player || !isPlayerReady || Date.now() < ignoreUntil) return;
       const t = player.getCurrentTime();
-      // User scrubbed aage ya peeche
-      if (Math.abs(t - lastKnownTime) > 1.2 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
+      if (Math.abs(t - lastKnownTime) > 0.8 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
         sendDirect({ 
           cmd: 'SEEK', 
           time: t, 
@@ -740,7 +783,16 @@
       lastKnownTime = t;
     }
 
-    // 3. Instant RPC Receiver (Zero Delay, No Echo Loops)
+    // Host Only Heartbeat: Keeps exact same millisecond alignment
+    function hostDriftHeartbeat() {
+      if (isHost && conn && conn.open && player && isPlayerReady) {
+        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+          conn.send({ cmd: 'HEARTBEAT', time: player.getCurrentTime() });
+        }
+      }
+    }
+
+    // 3. Instant RPC Receiver (Zero Delay, 100% Anti-Echo)
     function handleDirectCommand(d) {
       if (d.cmd === 'FRIEND_LEFT') {
         handleFriendDisconnect();
@@ -752,24 +804,25 @@
         return;
       }
 
-      // Lock to stop echoing back to sender
-      isRemoteAction = true;
+      // Lock local event emitter for 1000ms to stop bounce-back echo
+      ignoreUntil = Date.now() + 1000;
 
       if (d.cmd === 'LOAD_VIDEO') {
         playVideoById(d.videoId, d.time || 0, d.isPlaying);
-        setLog('Video synced from friend');
+        setLog('Video loaded by friend');
       }
 
       if (d.cmd === 'PLAY' && player) {
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.7) {
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.3) {
           player.seekTo(d.time, true);
         }
+        player.unMute();
         player.playVideo();
       }
 
       if (d.cmd === 'PAUSE' && player) {
         player.pauseVideo();
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.7) {
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.3) {
           player.seekTo(d.time, true);
         }
       }
@@ -777,6 +830,7 @@
       if (d.cmd === 'SEEK' && player) {
         player.seekTo(d.time, true);
         if (d.isPlaying) {
+          player.unMute();
           player.playVideo();
         } else {
           player.pauseVideo();
@@ -784,9 +838,15 @@
         setLog('Skipped to ' + Math.floor(d.time) + 's');
       }
 
-      // Release lock quickly so local user can immediately interact
+      // Client Smooth Clock Alignment
+      if (d.cmd === 'HEARTBEAT' && !isHost && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        const diff = Math.abs(player.getCurrentTime() - d.time);
+        if (diff > 0.45) { // 0.45s se zyada gap hua toh smoothly match karega
+          player.seekTo(d.time, true);
+        }
+      }
+
       setTimeout(() => {
-        isRemoteAction = false;
         if (player && player.getCurrentTime) lastKnownTime = player.getCurrentTime();
       }, 300);
     }
@@ -798,7 +858,7 @@
       if (!text) return;
 
       addMessage(text, 'me');
-      sendDirect({ cmd: 'MSG', text: text });
+      if (conn && conn.open) conn.send({ cmd: 'MSG', text: text });
       input.value = '';
     }
 
