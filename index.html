@@ -121,7 +121,7 @@
     .leave-btn:active { transform: scale(0.96); }
 
     /* ============================================================
-       CLEAN LOBBY OVERLAY (100% Fresh Entry)
+       LOBBY & WAITING OVERLAY
        ============================================================ */
     #lobbyOverlay {
       position: fixed;
@@ -143,7 +143,6 @@
       margin-top: 25px;
     }
 
-    /* Cards */
     .card {
       background: var(--card-bg);
       padding: 14px;
@@ -153,7 +152,6 @@
       flex-direction: column;
       gap: 10px;
       position: relative;
-      scroll-margin-top: 10px;
     }
     .title {
       font-size: 11px;
@@ -163,21 +161,41 @@
       letter-spacing: 0.5px;
     }
 
-    /* Host Room Info Box inside Theater */
-    .room-info-bar {
+    /* Waiting State Card */
+    .waiting-box {
       display: flex;
-      justify-content: space-between;
+      flex-direction: column;
       align-items: center;
-      background: #eff6ff;
-      border: 1px solid #bfdbfe;
-      padding: 8px 12px;
-      border-radius: 10px;
-      font-size: 12px;
-      font-weight: 600;
-      color: #1e40af;
+      text-align: center;
+      padding: 20px 10px;
+      gap: 14px;
     }
-    .room-actions { display: flex; gap: 6px; }
-    .btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 6px; }
+    .pulse-loader {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: rgba(37, 99, 235, 0.12);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: pulse 1.8s infinite ease-in-out;
+    }
+    @keyframes pulse {
+      0% { transform: scale(0.92); opacity: 0.7; }
+      50% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(0.92); opacity: 0.7; }
+    }
+    .pin-display {
+      font-family: 'Outfit', monospace;
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: 5px;
+      color: var(--primary);
+      background: #eff6ff;
+      padding: 8px 18px;
+      border-radius: 10px;
+      border: 1px dashed #bfdbfe;
+    }
 
     /* Inputs & Buttons */
     .row { display: flex; gap: 8px; width: 100%; position: relative; }
@@ -222,7 +240,7 @@
        THEATER LAYOUT
        ============================================================ */
     #theaterRoom {
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 10px;
     }
@@ -232,7 +250,7 @@
       .theater-right { display: flex; flex-direction: column; gap: 10px; }
     }
 
-    /* 100% STICKY VIDEO ON MOBILE */
+    /* 100% Sticky Video on Mobile */
     .sticky-player-box {
       position: sticky;
       top: 0;
@@ -282,7 +300,12 @@
     }
     .welcome-sub { font-size: 13px; color: #94a3b8; }
 
-    .control-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 0 2px; }
+    .control-row {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      padding: 4px 2px 0 2px;
+    }
 
     /* Suggestions Dropdown */
     .suggest-box {
@@ -414,7 +437,6 @@
       border: 1px solid #fce7f3;
       border-radius: 14px 14px 14px 2px;
     }
-    .info-bar { font-size: 11px; color: var(--muted); }
 
     /* ============================================================
        LAPTOP / DESKTOP (2.2:1 Ratio)
@@ -424,7 +446,7 @@
       .container { max-width: 1300px; }
       
       #theaterRoom {
-        display: grid;
+        display: none;
         grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr);
         gap: 20px;
         align-items: start;
@@ -448,19 +470,18 @@
 
   <!-- Floating Toast Notification -->
   <div id="toastNotification" class="toast-banner">
-    <span id="toastMsg">Friend has left the room!</span>
+    <span id="toastMsg">Friend joined the room</span>
   </div>
 
-  <!-- 1. FULLSCREEN LOBBY OVERLAY (100% Guaranteed Fresh Entry) -->
+  <!-- 1. FULLSCREEN LOBBY OVERLAY -->
   <div id="lobbyOverlay">
     <div class="lobby-content">
       <div class="header">
         <div class="logo">▶ Viku</div>
-        <div class="badge">Watch Party</div>
       </div>
 
-      <div class="card">
-        <!-- Option 1: Create Room (Host creates & primes immediately) -->
+      <!-- Initial Choice Card -->
+      <div id="initialCard" class="card">
         <div>
           <button class="large-btn" onclick="createRoomAsHost()">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
@@ -472,7 +493,6 @@
 
         <div class="sep">OR JOIN WITH CODE</div>
 
-        <!-- Option 2: Join Room (Friend inputs code) -->
         <div>
           <div class="row">
             <input id="friendPin" class="pin-input" type="number" placeholder="Enter PIN" />
@@ -482,28 +502,46 @@
 
         <div class="sep">OR</div>
 
-        <!-- Option 3: Watch Solo -->
         <button class="outline" onclick="openSolo()">Watch Solo (No Friend)</button>
+      </div>
+
+      <!-- Host Waiting Card (Create Room karte hi sirf ye dikhega) -->
+      <div id="waitingCard" class="card" style="display: none;">
+        <div class="waiting-box">
+          <div class="pulse-loader">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14"></line>
+              <line x1="22" y1="11" x2="16" y2="11"></line>
+            </svg>
+          </div>
+
+          <div>
+            <div style="font-size: 16px; font-weight: 700; color: #0f172a;">Waiting for friend to join...</div>
+            <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Share your Room PIN with your friend</div>
+          </div>
+
+          <div id="displayWaitingPin" class="pin-display">.....</div>
+
+          <div class="row" style="max-width: 280px;">
+            <button class="gray" style="flex: 1;" onclick="copyPin()">Copy PIN</button>
+            <button style="flex: 1;" onclick="shareRoomLink()">Share 🔗</button>
+          </div>
+
+          <button class="outline" style="font-size: 12px; padding: 6px 12px; margin-top: 4px;" onclick="leaveRoom()">Cancel Room</button>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- 2. THEATER (Renders underneath, primed on click) -->
+  <!-- 2. THEATER (Friend Connect ya Solo par hi visible hoga) -->
   <div class="container">
     <div class="header">
       <div class="logo">▶ Viku</div>
       <div class="header-actions">
         <div id="stat" class="badge">Lobby</div>
         <button id="leaveBtn" class="leave-btn" onclick="leaveRoom()">✕ Leave</button>
-      </div>
-    </div>
-
-    <!-- Active Room PIN & Share Bar inside Theater (Visible when hosting) -->
-    <div id="roomInfoBar" class="room-info-bar" style="display: none;">
-      <span>Room PIN: <b id="displayPin" style="font-family: 'Outfit', monospace; letter-spacing: 2px;">.....</b></span>
-      <div class="room-actions">
-        <button class="gray btn-sm" onclick="copyPin()">Copy</button>
-        <button class="gray btn-sm" onclick="shareRoomLink()">Share 🔗</button>
       </div>
     </div>
 
@@ -520,7 +558,6 @@
           </div>
 
           <div class="control-row">
-            <span id="logText" class="info-bar">Ready</span>
             <button class="gray" onclick="toggleFullscreen()">⛶ Fullscreen</button>
           </div>
         </div>
@@ -538,22 +575,19 @@
                    onkeydown="if(event.key==='Enter') searchOrPlay()" />
             <button onclick="searchOrPlay()">Search</button>
 
-            <!-- YouTube Auto-Suggest -->
             <div id="suggestBox" class="suggest-box"></div>
           </div>
 
-          <!-- Video Results List -->
           <div id="searchList" class="results-list" style="display: none;"></div>
         </div>
 
-        <!-- Big Live Chat Card (Solo me hidden rahega) -->
+        <!-- Big Live Chat Card -->
         <div class="card chat-card" id="chatCard">
           <div class="chat-header">
             <div class="title">Live Chat</div>
             <span style="font-size: 11px; color: #10b981; font-weight: 600;">● Active</span>
           </div>
 
-          <!-- Large Chat Box with Watermark -->
           <div id="chatLogs" class="chat-logs">
             <div class="chat-watermark">VIKU</div>
           </div>
@@ -571,12 +605,11 @@
     let player = null, peer = null, conn = null, currentVid = null;
     let suggestTimer = null, toastTimer = null;
     let isPlayerReady = false;
-    let isHost = false;
     let myActivePin = null;
-    let ignoreEventsUntil = 0;
+    let isRemoteAction = false;
     let lastKnownPos = 0;
 
-    // 1. YouTube Iframe Initialization (Runs early in DOM)
+    // 1. YouTube Iframe Initialization
     function onYouTubeIframeAPIReady() {
       player = new YT.Player('ytPlayer', {
         height: '100%',
@@ -591,8 +624,7 @@
           'onReady': () => {
             isPlayerReady = true;
             try { player.unMute(); } catch(e) {}
-            setInterval(trackPlaybackJump, 100);
-            setInterval(hostSyncHeartbeat, 1500);
+            setInterval(trackPlaybackJump, 120);
           },
           'onStateChange': onPlayerStateChange
         }
@@ -602,15 +634,16 @@
     // 2. Peer Setup
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
-      document.getElementById('displayPin').innerText = myActivePin;
+      document.getElementById('displayWaitingPin').innerText = myActivePin;
 
       peer = new Peer('viku-' + myActivePin);
 
       peer.on('connection', (c) => {
         conn = c;
         bindConnEvents();
-        updateStatus('Connected ⚡', true);
-        showToast('Friend joined the room! 🚀');
+        // FRIEND CONNECTED -> Ab Theater Screen Open Hoga!
+        showToast('Friend joined the room');
+        enterTheater('Connected', true);
       });
 
       peer.on('error', (err) => {
@@ -620,7 +653,6 @@
       setupStickyRule();
     }
 
-    // Check URL Hash for 1-Click Link Sharing (e.g. site.com/#55966)
     function checkUrlHash() {
       if (window.location.hash) {
         const hashPin = window.location.hash.replace('#', '').trim();
@@ -669,49 +701,46 @@
       }
     }
 
-    // A) HOST FLOW: Create Room
+    // A) HOST FLOW: Create Room -> Shows Waiting Card (Player/Chat Hidden)
     function createRoomAsHost() {
       unlockMediaEngine();
-      isHost = true;
       
-      document.getElementById('lobbyOverlay').style.display = 'none';
-      document.getElementById('leaveBtn').style.display = 'inline-flex';
-      document.getElementById('roomInfoBar').style.display = 'flex';
-      document.getElementById('chatCard').style.display = 'flex';
+      // Initial card hide, waiting card show
+      document.getElementById('initialCard').style.display = 'none';
+      document.getElementById('waitingCard').style.display = 'flex';
       
-      updateStatus('Waiting for friend...', false);
+      updateStatus('Waiting for friend', false);
     }
 
-    // B) FRIEND FLOW: Join Room
+    // Enter Theater: Unhides Video Player & Chat
+    function enterTheater(mode, showChat) {
+      document.getElementById('lobbyOverlay').style.display = 'none';
+      document.getElementById('leaveBtn').style.display = 'inline-flex';
+      
+      const theater = document.getElementById('theaterRoom');
+      theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
+      
+      document.getElementById('chatCard').style.display = showChat ? 'flex' : 'none';
+      updateStatus(mode, mode === 'Connected');
+    }
+
+    // B) FRIEND FLOW: Join Room -> Enters Theater directly
     function connectFriend() {
       const pin = document.getElementById('friendPin').value.trim();
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
       
       unlockMediaEngine();
-      isHost = false;
 
       conn = peer.connect('viku-' + pin);
       bindConnEvents();
 
-      document.getElementById('lobbyOverlay').style.display = 'none';
-      document.getElementById('leaveBtn').style.display = 'inline-flex';
-      document.getElementById('roomInfoBar').style.display = 'none';
-      document.getElementById('chatCard').style.display = 'flex';
-
-      updateStatus('Connecting...', false);
+      enterTheater('Connected', true);
     }
 
-    // C) SOLO FLOW: Watch Solo
+    // C) SOLO FLOW: Watch Solo -> Enters Theater (Chat hidden)
     function openSolo() {
       unlockMediaEngine();
-      isHost = false;
-
-      document.getElementById('lobbyOverlay').style.display = 'none';
-      document.getElementById('leaveBtn').style.display = 'inline-flex';
-      document.getElementById('roomInfoBar').style.display = 'none';
-      document.getElementById('chatCard').style.display = 'none'; // Solo me chat hidden
-
-      updateStatus('Solo', false);
+      enterTheater('Solo', false);
     }
 
     function updateStatus(text, isConnected) {
@@ -737,10 +766,12 @@
       document.getElementById('welcomeScreen').style.display = 'flex';
       document.getElementById('chatLogs').innerHTML = '<div class="chat-watermark">VIKU</div>';
 
-      // Reset to fresh lobby
+      // Reset lobby overlay
       document.getElementById('lobbyOverlay').style.display = 'flex';
+      document.getElementById('initialCard').style.display = 'flex';
+      document.getElementById('waitingCard').style.display = 'none';
+      document.getElementById('theaterRoom').style.display = 'none';
       document.getElementById('leaveBtn').style.display = 'none';
-      document.getElementById('roomInfoBar').style.display = 'none';
 
       updateStatus('Lobby', false);
 
@@ -761,18 +792,24 @@
       }, 3500);
     }
 
-    // Guaranteed Clean Entry on Reload / Back
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
         document.getElementById('lobbyOverlay').style.display = 'flex';
       }
     });
 
+    window.addEventListener('resize', () => {
+      const theater = document.getElementById('theaterRoom');
+      if (theater.style.display !== 'none') {
+        theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
+      }
+    });
+
     function bindConnEvents() {
       conn.on('open', () => {
-        updateStatus('Connected ⚡', true);
+        updateStatus('Connected', true);
         if (currentVid && player && player.getCurrentTime) {
-          sendDirect({ 
+          conn.send({ 
             cmd: 'LOAD_VIDEO', 
             videoId: currentVid, 
             time: player.getCurrentTime(), 
@@ -785,15 +822,8 @@
     }
 
     function handleFriendDisconnect() {
-      updateStatus(isHost ? 'Waiting for friend...' : 'Solo', false);
-      setLog('Friend left the room');
-      showToast('⚠️ Friend has left the room!', true);
-    }
-
-    function sendDirect(payload) {
-      if (conn && conn.open && Date.now() > ignoreEventsUntil) {
-        conn.send(payload);
-      }
+      updateStatus('Solo', false);
+      showToast('Friend has left the room', true);
     }
 
     // 3. Play Video Engine
@@ -815,42 +845,33 @@
       }
     }
 
-    // YouTube State Change
     function onPlayerStateChange(e) {
-      if (Date.now() < ignoreEventsUntil || !player) return;
+      if (isRemoteAction || !player) return;
       const t = player.getCurrentTime();
 
       if (e.data === YT.PlayerState.PLAYING) {
-        sendDirect({ cmd: 'PLAY', time: t });
+        if (conn && conn.open) conn.send({ cmd: 'PLAY', time: t });
       } else if (e.data === YT.PlayerState.PAUSED) {
-        sendDirect({ cmd: 'PAUSE', time: t });
+        if (conn && conn.open) conn.send({ cmd: 'PAUSE', time: t });
       }
     }
 
-    // Fast 100ms Jump / Scrub Detector
     function trackPlaybackJump() {
-      if (!player || !isPlayerReady || Date.now() < ignoreEventsUntil) return;
+      if (!player || !isPlayerReady || isRemoteAction) return;
       const t = player.getCurrentTime();
       if (Math.abs(t - lastKnownPos) > 1.2 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
-        sendDirect({ 
-          cmd: 'SEEK', 
-          time: t, 
-          isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
-        });
+        if (conn && conn.open) {
+          conn.send({ 
+            cmd: 'SEEK', 
+            time: t, 
+            isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
+          });
+        }
       }
       lastKnownPos = t;
     }
 
-    // Host Master Heartbeat
-    function hostSyncHeartbeat() {
-      if (isHost && conn && conn.open && player && isPlayerReady) {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-          conn.send({ cmd: 'BEAT', time: player.getCurrentTime() });
-        }
-      }
-    }
-
-    // 4. Remote Execution & Dynamic Catch-up (No Buffering Lag)
+    // 4. Remote Command Handler
     function handleRemoteCommand(d) {
       if (d.cmd === 'FRIEND_LEFT') {
         handleFriendDisconnect();
@@ -862,12 +883,10 @@
         return;
       }
 
-      // 1200ms Anti-Echo Lock
-      ignoreEventsUntil = Date.now() + 1200;
+      isRemoteAction = true;
 
       if (d.cmd === 'LOAD_VIDEO') {
         playVideoById(d.videoId, d.time || 0, d.isPlaying);
-        setLog('Video loaded by friend');
       }
 
       if (d.cmd === 'PLAY' && player) {
@@ -876,7 +895,6 @@
         }
         player.unMute();
         player.playVideo();
-        player.setPlaybackRate(1.0);
       }
 
       if (d.cmd === 'PAUSE' && player) {
@@ -884,7 +902,6 @@
         if (Math.abs(player.getCurrentTime() - d.time) > 0.4) {
           player.seekTo(d.time, true);
         }
-        player.setPlaybackRate(1.0);
       }
 
       if (d.cmd === 'SEEK' && player) {
@@ -895,29 +912,12 @@
         } else {
           player.pauseVideo();
         }
-        player.setPlaybackRate(1.0);
-        setLog('Skipped to ' + Math.floor(d.time) + 's');
-      }
-
-      // Smooth Speed Alignment: No Buffer Thrashing
-      if (d.cmd === 'BEAT' && !isHost && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-        const drift = d.time - player.getCurrentTime();
-
-        if (Math.abs(drift) < 0.25) {
-          player.setPlaybackRate(1.0);
-        } else if (drift > 0.25 && drift <= 1.8) {
-          player.setPlaybackRate(1.15); // Silently catch up
-        } else if (drift < -0.25 && drift >= -1.8) {
-          player.setPlaybackRate(0.85); // Silently slow down
-        } else if (Math.abs(drift) > 1.8) {
-          player.seekTo(d.time, true);
-          player.setPlaybackRate(1.0);
-        }
       }
 
       setTimeout(() => {
+        isRemoteAction = false;
         if (player && player.getCurrentTime) lastKnownPos = player.getCurrentTime();
-      }, 400);
+      }, 350);
     }
 
     // 5. Chat Functions
@@ -1069,7 +1069,9 @@
       const directId = extractId(q);
       if (directId) {
         playVideoById(directId, 0, true);
-        sendDirect({ cmd: 'LOAD_VIDEO', videoId: directId, time: 0, isPlaying: true });
+        if (conn && conn.open) {
+          conn.send({ cmd: 'LOAD_VIDEO', videoId: directId, time: 0, isPlaying: true });
+        }
         document.getElementById('searchList').style.display = 'none';
         return;
       }
@@ -1106,7 +1108,9 @@
           `;
           item.onclick = () => {
             playVideoById(v.id, 0, true);
-            sendDirect({ cmd: 'LOAD_VIDEO', videoId: v.id, time: 0, isPlaying: true });
+            if (conn && conn.open) {
+              conn.send({ cmd: 'LOAD_VIDEO', videoId: v.id, time: 0, isPlaying: true });
+            }
             listEl.style.display = 'none';
           };
           listEl.appendChild(item);
@@ -1126,13 +1130,13 @@
       const shareUrl = window.location.origin + window.location.pathname + '#' + myActivePin;
       if (navigator.share) {
         navigator.share({
-          title: 'Join my Viku Watch Party',
+          title: 'Join my Viku room',
           text: 'Watch YouTube together with me on Viku! Room PIN: ' + myActivePin,
           url: shareUrl
         }).catch(() => {});
       } else {
         navigator.clipboard.writeText(shareUrl);
-        showToast('Invite link copied! Send to friend.');
+        showToast('Invite link copied');
       }
     }
 
@@ -1145,8 +1149,6 @@
         if (document.exitFullscreen) document.exitFullscreen();
       }
     }
-
-    function setLog(t) { document.getElementById('logText').innerText = t; }
 
     window.onload = () => {
       initPeer();
