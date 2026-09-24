@@ -39,24 +39,25 @@
       transition: max-width 0.3s ease;
     }
 
-    /* Floating Toast Notification */
+    /* Floating Alert Banner (Only for Friend Left) */
     .toast-banner {
       position: fixed;
       top: 14px;
       left: 50%;
       transform: translateX(-50%) translateY(-80px);
-      background: #1e293b;
-      color: #ffffff;
+      background: #fff7ed;
+      border: 1px solid #fed7aa;
+      color: #9a3412;
       padding: 9px 18px;
       border-radius: 30px;
       font-size: 13px;
-      font-weight: 600;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
       z-index: 999;
       display: flex;
       align-items: center;
       gap: 8px;
-      transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
       opacity: 0;
       pointer-events: none;
     }
@@ -65,8 +66,6 @@
       opacity: 1;
       pointer-events: auto;
     }
-    .toast-banner.warning { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
-    .toast-banner.success { background: #ecfdf5; color: #065f46; border: 1px solid #a7f3d0; }
 
     /* Top Bar */
     .header {
@@ -102,7 +101,6 @@
       text-transform: uppercase;
     }
     .badge.on { background: #dcfce7; color: #16a34a; }
-    .badge.syncing { background: #fef3c7; color: #b45309; }
 
     /* Leave Room Button in Corner */
     .leave-btn {
@@ -180,7 +178,7 @@
     .sep:not(:empty)::after { margin-left: 10px; }
 
     /* ============================================================
-       THEATER LAYOUT (HIDDEN UNTIL JOIN / SOLO)
+       THEATER LAYOUT (SHURU ME 100% HIDDEN)
        ============================================================ */
     #theaterRoom {
       display: none;
@@ -193,7 +191,7 @@
       .theater-right { display: flex; flex-direction: column; gap: 10px; }
     }
 
-    /* 100% Sticky Video Player on Mobile */
+    /* 100% STICKY VIDEO ON MOBILE */
     .sticky-player-box {
       position: sticky;
       top: 0;
@@ -202,6 +200,7 @@
       padding: 2px 0 6px 0;
     }
 
+    /* SIRF SEARCH PAR UN-STICK */
     body.search-mode .sticky-player-box {
       position: static !important;
     }
@@ -407,10 +406,10 @@
 </head>
 <body>
 
-  <!-- Floating Alert Banner -->
+  <!-- Floating Toast Notification (Only for Friend Disconnect) -->
   <div id="toastNotification" class="toast-banner">
-    <span id="toastIcon">⚠️</span>
-    <span id="toastMsg">Notification</span>
+    <span>⚠️</span>
+    <span id="toastMsg">Friend has left the room!</span>
   </div>
 
   <div class="container">
@@ -511,10 +510,9 @@
   </div>
 
   <script>
-    let player = null, peer = null, conn = null, remote = false, lastTime = 0, currentVid = null;
+    let player = null, peer = null, conn = null, isRemoteAction = false, lastKnownTime = 0, currentVid = null;
     let suggestTimer = null, toastTimer = null;
     let isPlayerReady = false;
-    let isFriendBuffering = false;
 
     // 1. Peer Setup & PIN Generator
     function init() {
@@ -573,7 +571,7 @@
       unlockTheater('Solo', false);
     }
 
-    // Unlocks Theater & Primes YouTube Audio Context
+    // Unlock Theater Screen: User gesture clears autoplay restriction
     function unlockTheater(mode, showChat) {
       document.getElementById('lobbyRoom').style.display = 'none';
 
@@ -589,7 +587,6 @@
       stat.innerText = mode;
       stat.className = 'badge' + (mode.includes('Connected') ? ' on' : '');
 
-      // Warmup player right now during user click to remove autoplay restrictions
       if (!player && window.YT && YT.Player) {
         initPlayer();
       }
@@ -597,7 +594,7 @@
 
     function leaveRoom() {
       if (conn && conn.open) {
-        conn.send({ t: 'FRIEND_LEFT' });
+        conn.send({ cmd: 'FRIEND_LEFT' });
         conn.close();
       }
       conn = null;
@@ -620,20 +617,11 @@
       if (peer) peer.destroy();
       document.getElementById('friendPin').value = '';
       init();
-
-      showToast('You left the room.', 'normal');
     }
 
-    function showToast(msg, type = 'normal') {
+    function showToast(msg) {
       const banner = document.getElementById('toastNotification');
-      const icon = document.getElementById('toastIcon');
       document.getElementById('toastMsg').innerText = msg;
-      
-      banner.className = 'toast-banner ' + type;
-      if (type === 'warning') icon.innerText = '⏳';
-      else if (type === 'success') icon.innerText = '⚡';
-      else icon.innerText = '⚠️';
-
       banner.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
@@ -651,16 +639,15 @@
     function bindConnEvents() {
       conn.on('open', () => {
         if (currentVid && player && player.getCurrentTime) {
-          sendSync({ 
-            t: 'V', 
-            id: currentVid, 
-            s: player.getCurrentTime(), 
-            p: player.getPlayerState(),
-            playAt: Date.now() + 300 
+          sendDirect({ 
+            cmd: 'LOAD_VIDEO', 
+            videoId: currentVid, 
+            time: player.getCurrentTime(), 
+            isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
           });
         }
       });
-      conn.on('data', handleIncoming);
+      conn.on('data', handleDirectCommand);
       conn.on('close', handleFriendDisconnect);
     }
 
@@ -670,14 +657,17 @@
       stat.className = 'badge';
       setLog('Friend left the room');
       document.getElementById('chatCard').style.display = 'none';
-      showToast('Friend has left the room!', 'warning');
+      showToast('Friend has left the room!');
     }
 
-    function sendSync(data) {
-      if (conn && conn.open && !remote) conn.send(data);
+    // Direct Instant Transmission (Zero Queueing)
+    function sendDirect(payload) {
+      if (conn && conn.open && !isRemoteAction) {
+        conn.send(payload);
+      }
     }
 
-    // 2. YouTube Player Setup with Coordinated Time Sync
+    // 2. YouTube Player Setup (Instant RPC, Zero Clock Lag)
     function initPlayer(callback) {
       player = new YT.Player('ytPlayer', {
         height: '100%',
@@ -691,179 +681,114 @@
         events: {
           'onReady': () => {
             isPlayerReady = true;
-            // Unmute & prime to ensure mobile allows autoplay
             try { player.unMute(); } catch(e){}
-            setInterval(checkSkipFast, 150);
-            setInterval(autoSyncDrift, 2000);
+            setInterval(checkInstantSeek, 150);
             if (callback) callback();
           },
-          'onStateChange': onState
+          'onStateChange': onPlayerState
         }
       });
     }
 
-    function playVideoById(videoId, startSeconds = 0, isPlaying = true, playAt = null) {
+    function playVideoById(videoId, startSeconds = 0, autoPlay = true) {
       currentVid = videoId;
       document.getElementById('welcomeScreen').style.display = 'none';
 
-      const execLoad = () => {
+      const exec = () => {
         player.loadVideoById({
           videoId: videoId,
           startSeconds: startSeconds
         });
-        
-        if (isPlaying) {
-          schedulePlayback(startSeconds, playAt);
+        if (autoPlay) {
+          player.playVideo();
         } else {
           setTimeout(() => player.pauseVideo(), 150);
         }
       };
 
       if (!player) {
-        initPlayer(execLoad);
+        initPlayer(exec);
       } else {
-        execLoad();
+        exec();
       }
     }
 
-    // Coordinated Exact Millisecond Playback
-    function schedulePlayback(targetSeconds, playAtEpoch) {
-      if (!playAtEpoch) {
-        player.playVideo();
-        return;
-      }
-
-      const delay = playAtEpoch - Date.now();
-      if (delay > 0) {
-        // Wait till exact epoch arrives so both phones play simultaneously
-        setTimeout(() => {
-          if (!isFriendBuffering && player) player.playVideo();
-        }, delay);
-      } else {
-        // If delayed, compensate time elapsed
-        const catchup = targetSeconds + Math.abs(delay) / 1000;
-        player.seekTo(catchup, true);
-        if (!isFriendBuffering && player) player.playVideo();
-      }
-    }
-
-    function onState(e) {
-      if (remote || !player) return;
+    // Direct State Sync: Sends action immediately on touch
+    function onPlayerState(e) {
+      if (isRemoteAction || !player) return;
       const t = player.getCurrentTime();
-
-      // Buffer Detection (Internet problem handler)
-      if (e.data === YT.PlayerState.BUFFERING) {
-        sendSync({ t: 'BUFFER_WAIT', s: t });
-      }
 
       if (e.data === YT.PlayerState.PLAYING) {
-        // Send scheduled play (250ms ahead so both start at the exact same millisecond)
-        const scheduledTime = Date.now() + 250;
-        sendSync({ t: 'SCHEDULE_PLAY', s: t, playAt: scheduledTime });
-      }
-
-      if (e.data === YT.PlayerState.PAUSED) {
-        sendSync({ t: 'PAUSE', s: t });
+        sendDirect({ cmd: 'PLAY', time: t });
+      } else if (e.data === YT.PlayerState.PAUSED) {
+        sendDirect({ cmd: 'PAUSE', time: t });
       }
     }
 
-    // 150ms Instant Skip Detector
-    function checkSkipFast() {
-      if (!player || !isPlayerReady || remote) return;
+    // Fast 150ms Skip Detector
+    function checkInstantSeek() {
+      if (!player || !isPlayerReady || isRemoteAction) return;
       const t = player.getCurrentTime();
-      if (Math.abs(t - lastTime) > 0.65 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
-        const scheduledTime = Date.now() + 250;
-        sendSync({ 
-          t: 'SEEK', 
-          s: t, 
-          p: (player.getPlayerState() === YT.PlayerState.PLAYING),
-          playAt: scheduledTime 
+      // User scrubbed aage ya peeche
+      if (Math.abs(t - lastKnownTime) > 1.2 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
+        sendDirect({ 
+          cmd: 'SEEK', 
+          time: t, 
+          isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
         });
       }
-      lastTime = t;
+      lastKnownTime = t;
     }
 
-    // Periodic Drift Correction (Maintains Zero Lag)
-    function autoSyncDrift() {
-      if (conn && conn.open && !remote && player && isPlayerReady) {
-        if (player.getPlayerState() === YT.PlayerState.PLAYING && !isFriendBuffering) {
-          sendSync({ t: 'DRIFT_PING', s: player.getCurrentTime(), sentAt: Date.now() });
-        }
-      }
-    }
-
-    // 3. Sync & Chat Handlers (With Coordinated Playback & Buffer Lock)
-    function handleIncoming(d) {
-      if (d.t === 'FRIEND_LEFT') {
+    // 3. Instant RPC Receiver (Zero Delay, No Echo Loops)
+    function handleDirectCommand(d) {
+      if (d.cmd === 'FRIEND_LEFT') {
         handleFriendDisconnect();
         return;
       }
 
-      if (d.t === 'MSG') {
-        addMessage(d.m, 'them');
+      if (d.cmd === 'MSG') {
+        addMessage(d.text, 'them');
         return;
       }
 
-      // Handling Friend Buffering (Internet Lag)
-      if (d.t === 'BUFFER_WAIT') {
-        isFriendBuffering = true;
-        if (player) player.pauseVideo();
-        showToast('Waiting for friend to buffer... ⏳', 'warning');
-        const stat = document.getElementById('stat');
-        stat.innerText = 'Syncing... ⏳';
-        stat.className = 'badge syncing';
-        return;
+      // Lock to stop echoing back to sender
+      isRemoteAction = true;
+
+      if (d.cmd === 'LOAD_VIDEO') {
+        playVideoById(d.videoId, d.time || 0, d.isPlaying);
+        setLog('Video synced from friend');
       }
 
-      remote = true;
-
-      if (d.t === 'V') {
-        playVideoById(d.id, d.s || 0, d.p !== YT.PlayerState.PAUSED, d.playAt);
-        setLog('Video loaded by friend');
+      if (d.cmd === 'PLAY' && player) {
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.7) {
+          player.seekTo(d.time, true);
+        }
+        player.playVideo();
       }
 
-      if (d.t === 'SCHEDULE_PLAY' && player) {
-        isFriendBuffering = false;
-        const stat = document.getElementById('stat');
-        stat.innerText = 'Connected ⚡';
-        stat.className = 'badge on';
-        showToast('Synchronized! ⚡', 'success');
-
-        schedulePlayback(d.s, d.playAt);
-      }
-
-      if (d.t === 'PAUSE' && player) {
+      if (d.cmd === 'PAUSE' && player) {
         player.pauseVideo();
-        if (Math.abs(player.getCurrentTime() - d.s) > 0.4) {
-          player.seekTo(d.s, true);
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.7) {
+          player.seekTo(d.time, true);
         }
       }
 
-      // Instant Skip Sync without delay
-      if (d.t === 'SEEK' && player) {
-        player.seekTo(d.s, true);
-        if (d.p) {
-          schedulePlayback(d.s, d.playAt);
+      if (d.cmd === 'SEEK' && player) {
+        player.seekTo(d.time, true);
+        if (d.isPlaying) {
+          player.playVideo();
         } else {
           player.pauseVideo();
         }
-        setLog('Skipped to ' + Math.floor(d.s) + 's');
+        setLog('Skipped to ' + Math.floor(d.time) + 's');
       }
 
-      // Auto drift repair (adjusts sub-second gaps)
-      if (d.t === 'DRIFT_PING' && player && player.getPlayerState() === YT.PlayerState.PLAYING && !isFriendBuffering) {
-        const transit = Math.max(0, (Date.now() - d.sentAt) / 1000);
-        const expected = d.s + transit;
-        const diff = Math.abs(player.getCurrentTime() - expected);
-        if (diff > 0.5) { // 0.5s se zyada gap hua toh smooth adjust karega
-          player.seekTo(expected, true);
-        }
-      }
-
+      // Release lock quickly so local user can immediately interact
       setTimeout(() => {
-        remote = false;
-        if (player?.getCurrentTime) lastTime = player.getCurrentTime();
-      }, 350);
+        isRemoteAction = false;
+        if (player && player.getCurrentTime) lastKnownTime = player.getCurrentTime();
+      }, 300);
     }
 
     // 4. Chat Functions
@@ -873,7 +798,7 @@
       if (!text) return;
 
       addMessage(text, 'me');
-      sendSync({ t: 'MSG', m: text });
+      sendDirect({ cmd: 'MSG', text: text });
       input.value = '';
     }
 
@@ -1014,9 +939,8 @@
 
       const directId = extractId(q);
       if (directId) {
-        const targetPlayEpoch = Date.now() + 300;
-        playVideoById(directId, 0, true, targetPlayEpoch);
-        sendSync({ t: 'V', id: directId, s: 0, p: YT.PlayerState.PLAYING, playAt: targetPlayEpoch });
+        playVideoById(directId, 0, true);
+        sendDirect({ cmd: 'LOAD_VIDEO', videoId: directId, time: 0, isPlaying: true });
         document.getElementById('searchList').style.display = 'none';
         return;
       }
@@ -1052,9 +976,8 @@
             </div>
           `;
           item.onclick = () => {
-            const targetPlayEpoch = Date.now() + 300;
-            playVideoById(v.id, 0, true, targetPlayEpoch);
-            sendSync({ t: 'V', id: v.id, s: 0, p: YT.PlayerState.PLAYING, playAt: targetPlayEpoch });
+            playVideoById(v.id, 0, true);
+            sendDirect({ cmd: 'LOAD_VIDEO', videoId: v.id, time: 0, isPlaying: true });
             listEl.style.display = 'none';
           };
           listEl.appendChild(item);
