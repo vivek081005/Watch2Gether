@@ -39,21 +39,20 @@
       transition: max-width 0.3s ease;
     }
 
-    /* Floating Alert Banner (Only for Friend Left) */
+    /* Floating Toast Notification */
     .toast-banner {
       position: fixed;
       top: 14px;
       left: 50%;
       transform: translateX(-50%) translateY(-80px);
-      background: #fff7ed;
-      border: 1px solid #fed7aa;
-      color: #9a3412;
+      background: #1e293b;
+      color: #ffffff;
       padding: 9px 18px;
       border-radius: 30px;
       font-size: 13px;
       font-weight: 700;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.12);
-      z-index: 999;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+      z-index: 1000;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -66,6 +65,7 @@
       opacity: 1;
       pointer-events: auto;
     }
+    .toast-banner.alert { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
 
     /* Top Bar */
     .header {
@@ -101,6 +101,7 @@
       text-transform: uppercase;
     }
     .badge.on { background: #dcfce7; color: #16a34a; }
+    .badge.waiting { background: #fef3c7; color: #b45309; }
 
     /* Leave Room Button in Corner */
     .leave-btn {
@@ -119,10 +120,33 @@
     .leave-btn:hover { background: #fee2e2; }
     .leave-btn:active { transform: scale(0.96); }
 
+    /* ============================================================
+       CLEAN LOBBY OVERLAY (100% Fresh Entry)
+       ============================================================ */
+    #lobbyOverlay {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      z-index: 900;
+      display: flex;
+      justify-content: center;
+      padding: 14px;
+      overflow-y: auto;
+    }
+
+    .lobby-content {
+      width: 100%;
+      max-width: 500px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
     /* Cards */
     .card {
       background: var(--card-bg);
-      padding: 12px;
+      padding: 14px;
       border-radius: 12px;
       border: 1px solid var(--border);
       display: flex;
@@ -139,12 +163,28 @@
       letter-spacing: 0.5px;
     }
 
+    /* Host Room Info Box inside Theater */
+    .room-info-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 600;
+      color: #1e40af;
+    }
+    .room-actions { display: flex; gap: 6px; }
+    .btn-sm { padding: 4px 8px; font-size: 11px; border-radius: 6px; }
+
     /* Inputs & Buttons */
     .row { display: flex; gap: 8px; width: 100%; position: relative; }
     input {
       flex: 1;
       min-width: 0;
-      padding: 9px 12px;
+      padding: 10px 12px;
       font-size: 14px;
       border: 1.5px solid var(--border);
       border-radius: 8px;
@@ -152,10 +192,10 @@
       background: #f8fafc;
     }
     input:focus { border-color: var(--primary); background: #ffffff; }
-    .pin-input { font-family: 'Outfit', monospace; font-size: 18px; font-weight: 700; letter-spacing: 3px; text-align: center; }
+    .pin-input { font-family: 'Outfit', monospace; font-size: 19px; font-weight: 700; letter-spacing: 4px; text-align: center; }
 
     button {
-      padding: 9px 14px;
+      padding: 10px 16px;
       font-size: 13px;
       font-weight: 600;
       border-radius: 8px;
@@ -171,6 +211,7 @@
     button:active { transform: scale(0.97); }
     button.gray { background: #f1f5f9; color: #334155; }
     button.outline { background: transparent; border: 1.5px solid var(--border); color: #475569; }
+    button.large-btn { padding: 12px 18px; font-size: 14px; width: 100%; }
 
     .sep { display: flex; align-items: center; text-align: center; color: #94a3b8; font-size: 11px; font-weight: 600; }
     .sep::before, .sep::after { content: ''; flex: 1; border-bottom: 1px solid var(--border); }
@@ -178,10 +219,10 @@
     .sep:not(:empty)::after { margin-left: 10px; }
 
     /* ============================================================
-       THEATER LAYOUT (STRICTLY HIDDEN BY DEFAULT)
+       THEATER LAYOUT
        ============================================================ */
     #theaterRoom {
-      display: none !important; /* Shuru me 100% hidden */
+      display: flex;
       flex-direction: column;
       gap: 10px;
     }
@@ -382,8 +423,8 @@
       body { padding: 20px; }
       .container { max-width: 1300px; }
       
-      #theaterRoom.active {
-        display: grid !important;
+      #theaterRoom {
+        display: grid;
         grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr);
         gap: 20px;
         align-items: start;
@@ -405,14 +446,50 @@
 </head>
 <body>
 
-  <!-- Floating Alert Banner (Only for Friend Disconnect) -->
+  <!-- Floating Toast Notification -->
   <div id="toastNotification" class="toast-banner">
-    <span>⚠️</span>
     <span id="toastMsg">Friend has left the room!</span>
   </div>
 
+  <!-- 1. FULLSCREEN LOBBY OVERLAY (100% Guaranteed Fresh Entry) -->
+  <div id="lobbyOverlay">
+    <div class="lobby-content">
+      <div class="header">
+        <div class="logo">▶ Viku</div>
+        <div class="badge">Watch Party</div>
+      </div>
+
+      <div class="card">
+        <!-- Option 1: Create Room (Host creates & primes immediately) -->
+        <div>
+          <button class="large-btn" onclick="createRoomAsHost()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px;">
+              <polygon points="5 3 19 12 5 21 5 3"></polygon>
+            </svg>
+            Create Room
+          </button>
+        </div>
+
+        <div class="sep">OR JOIN WITH CODE</div>
+
+        <!-- Option 2: Join Room (Friend inputs code) -->
+        <div>
+          <div class="row">
+            <input id="friendPin" class="pin-input" type="number" placeholder="Enter PIN" />
+            <button onclick="connectFriend()">Join Room</button>
+          </div>
+        </div>
+
+        <div class="sep">OR</div>
+
+        <!-- Option 3: Watch Solo -->
+        <button class="outline" onclick="openSolo()">Watch Solo (No Friend)</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. THEATER (Renders underneath, primed on click) -->
   <div class="container">
-    <!-- Header -->
     <div class="header">
       <div class="logo">▶ Viku</div>
       <div class="header-actions">
@@ -421,34 +498,17 @@
       </div>
     </div>
 
-    <!-- 1. LOBBY (SHURU ME SIRF YEHI DIKHEGA) -->
-    <div id="lobbyRoom" class="card">
-      <div>
-        <div class="title">Your PIN</div>
-        <div class="row" style="margin-top: 6px;">
-          <input id="myPin" class="pin-input" readonly placeholder="....." />
-          <button class="gray" onclick="copyPin()">Copy</button>
-        </div>
+    <!-- Active Room PIN & Share Bar inside Theater (Visible when hosting) -->
+    <div id="roomInfoBar" class="room-info-bar" style="display: none;">
+      <span>Room PIN: <b id="displayPin" style="font-family: 'Outfit', monospace; letter-spacing: 2px;">.....</b></span>
+      <div class="room-actions">
+        <button class="gray btn-sm" onclick="copyPin()">Copy</button>
+        <button class="gray btn-sm" onclick="shareRoomLink()">Share 🔗</button>
       </div>
-
-      <div class="sep">OR</div>
-
-      <div>
-        <div class="title">Friend's PIN</div>
-        <div class="row" style="margin-top: 6px;">
-          <input id="friendPin" class="pin-input" type="number" placeholder="Enter PIN" />
-          <button onclick="connectFriend()">Join Room</button>
-        </div>
-      </div>
-
-      <div class="sep">OR</div>
-
-      <button class="outline" onclick="openSolo()">Watch Solo</button>
     </div>
 
-    <!-- 2. THEATER (CONNECT YA SOLO DABANE PAR HI KHULEGA) -->
     <div id="theaterRoom">
-      <!-- LEFT SIDE: YouTube Video Player & Controls -->
+      <!-- LEFT SIDE: YouTube Player & Controls -->
       <div class="theater-left">
         <div class="sticky-player-box">
           <div id="playerBox" class="player-wrap">
@@ -505,35 +565,69 @@
         </div>
       </div>
     </div>
-
   </div>
 
   <script>
-    let player = null, peer = null, conn = null, lastKnownTime = 0, currentVid = null;
+    let player = null, peer = null, conn = null, currentVid = null;
     let suggestTimer = null, toastTimer = null;
     let isPlayerReady = false;
-    let ignoreUntil = 0; // Anti-Echo Lock
     let isHost = false;
+    let myActivePin = null;
+    let ignoreEventsUntil = 0;
+    let lastKnownPos = 0;
 
-    // 1. Peer Setup & PIN Generator
-    function init() {
-      const myPin = Math.floor(10000 + Math.random() * 90000);
-      document.getElementById('myPin').value = myPin;
+    // 1. YouTube Iframe Initialization (Runs early in DOM)
+    function onYouTubeIframeAPIReady() {
+      player = new YT.Player('ytPlayer', {
+        height: '100%',
+        width: '100%',
+        playerVars: {
+          playsinline: 1,
+          rel: 0,
+          enablejsapi: 1,
+          origin: window.location.origin
+        },
+        events: {
+          'onReady': () => {
+            isPlayerReady = true;
+            try { player.unMute(); } catch(e) {}
+            setInterval(trackPlaybackJump, 100);
+            setInterval(hostSyncHeartbeat, 1500);
+          },
+          'onStateChange': onPlayerStateChange
+        }
+      });
+    }
 
-      peer = new Peer('viku-' + myPin);
+    // 2. Peer Setup
+    function initPeer() {
+      myActivePin = Math.floor(10000 + Math.random() * 90000);
+      document.getElementById('displayPin').innerText = myActivePin;
+
+      peer = new Peer('viku-' + myActivePin);
 
       peer.on('connection', (c) => {
         conn = c;
-        isHost = true;
         bindConnEvents();
-        unlockTheater('Connected ⚡', true);
+        updateStatus('Connected ⚡', true);
+        showToast('Friend joined the room! 🚀');
       });
 
       peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') init();
+        if (err.type === 'unavailable-id') initPeer();
       });
 
       setupStickyRule();
+    }
+
+    // Check URL Hash for 1-Click Link Sharing (e.g. site.com/#55966)
+    function checkUrlHash() {
+      if (window.location.hash) {
+        const hashPin = window.location.hash.replace('#', '').trim();
+        if (hashPin && hashPin.length >= 4) {
+          document.getElementById('friendPin').value = hashPin;
+        }
+      }
     }
 
     function setupStickyRule() {
@@ -561,60 +655,75 @@
       });
     }
 
-    // Direct User Tap clears Mobile Autoplay Block
-    function primeMobileAutoplay() {
-      if (player && isPlayerReady) {
+    // Direct User Tap clears Mobile Autoplay Restrictions
+    function unlockMediaEngine() {
+      if (player && typeof player.playVideo === 'function') {
         try {
-          player.unMute();
+          player.mute();
           player.playVideo();
           setTimeout(() => {
             if (!currentVid) player.pauseVideo();
-          }, 50);
+            player.unMute();
+          }, 80);
         } catch(e) {}
       }
     }
 
+    // A) HOST FLOW: Create Room
+    function createRoomAsHost() {
+      unlockMediaEngine();
+      isHost = true;
+      
+      document.getElementById('lobbyOverlay').style.display = 'none';
+      document.getElementById('leaveBtn').style.display = 'inline-flex';
+      document.getElementById('roomInfoBar').style.display = 'flex';
+      document.getElementById('chatCard').style.display = 'flex';
+      
+      updateStatus('Waiting for friend...', false);
+    }
+
+    // B) FRIEND FLOW: Join Room
     function connectFriend() {
       const pin = document.getElementById('friendPin').value.trim();
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
       
-      primeMobileAutoplay(); // User Gesture Unlocks Audio Engine
-      
-      conn = peer.connect('viku-' + pin);
+      unlockMediaEngine();
       isHost = false;
+
+      conn = peer.connect('viku-' + pin);
       bindConnEvents();
-      unlockTheater('Connected ⚡', true);
-    }
 
-    function openSolo() {
-      primeMobileAutoplay();
-      unlockTheater('Solo', false);
-    }
-
-    // Unlock Theater Screen
-    function unlockTheater(mode, showChat) {
-      document.getElementById('lobbyRoom').style.setProperty('display', 'none', 'important');
-
-      const theater = document.getElementById('theaterRoom');
-      theater.classList.add('active');
-      theater.style.setProperty('display', window.innerWidth >= 850 ? 'grid' : 'flex', 'important');
-
+      document.getElementById('lobbyOverlay').style.display = 'none';
       document.getElementById('leaveBtn').style.display = 'inline-flex';
+      document.getElementById('roomInfoBar').style.display = 'none';
+      document.getElementById('chatCard').style.display = 'flex';
 
-      const chatCard = document.getElementById('chatCard');
-      chatCard.style.display = showChat ? 'flex' : 'none';
-
-      const stat = document.getElementById('stat');
-      stat.innerText = mode;
-      stat.className = 'badge' + (mode.includes('Connected') ? ' on' : '');
-
-      if (!player && window.YT && YT.Player) {
-        initPlayer();
-      }
+      updateStatus('Connecting...', false);
     }
 
-    // Clean Fresh Reset (Prevents Browser Cache Glitch)
-    function resetToCleanLobby() {
+    // C) SOLO FLOW: Watch Solo
+    function openSolo() {
+      unlockMediaEngine();
+      isHost = false;
+
+      document.getElementById('lobbyOverlay').style.display = 'none';
+      document.getElementById('leaveBtn').style.display = 'inline-flex';
+      document.getElementById('roomInfoBar').style.display = 'none';
+      document.getElementById('chatCard').style.display = 'none'; // Solo me chat hidden
+
+      updateStatus('Solo', false);
+    }
+
+    function updateStatus(text, isConnected) {
+      const stat = document.getElementById('stat');
+      stat.innerText = text;
+      stat.className = 'badge';
+      if (isConnected) stat.classList.add('on');
+      else if (text.includes('Waiting')) stat.classList.add('waiting');
+    }
+
+    // Leave Room (Complete Clean Reset)
+    function leaveRoom() {
       if (conn && conn.open) {
         conn.send({ cmd: 'FRIEND_LEFT' });
         conn.close();
@@ -626,32 +735,25 @@
       }
       currentVid = null;
       document.getElementById('welcomeScreen').style.display = 'flex';
-
       document.getElementById('chatLogs').innerHTML = '<div class="chat-watermark">VIKU</div>';
-      
-      const theater = document.getElementById('theaterRoom');
-      theater.classList.remove('active');
-      theater.style.setProperty('display', 'none', 'important');
 
-      document.getElementById('lobbyRoom').style.setProperty('display', 'flex', 'important');
+      // Reset to fresh lobby
+      document.getElementById('lobbyOverlay').style.display = 'flex';
       document.getElementById('leaveBtn').style.display = 'none';
+      document.getElementById('roomInfoBar').style.display = 'none';
 
-      const stat = document.getElementById('stat');
-      stat.innerText = 'Lobby';
-      stat.className = 'badge';
+      updateStatus('Lobby', false);
 
       if (peer) peer.destroy();
       document.getElementById('friendPin').value = '';
-      init();
+      window.location.hash = '';
+      initPeer();
     }
 
-    function leaveRoom() {
-      resetToCleanLobby();
-    }
-
-    function showToast(msg) {
+    function showToast(msg, isAlert = false) {
       const banner = document.getElementById('toastNotification');
       document.getElementById('toastMsg').innerText = msg;
+      banner.className = 'toast-banner' + (isAlert ? ' alert' : '');
       banner.classList.add('show');
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => {
@@ -659,22 +761,16 @@
       }, 3500);
     }
 
-    window.addEventListener('resize', () => {
-      const theater = document.getElementById('theaterRoom');
-      if (theater.classList.contains('active')) {
-        theater.style.setProperty('display', window.innerWidth >= 850 ? 'grid' : 'flex', 'important');
-      }
-    });
-
-    // Enforce 100% clean entry on reload / bfcache visit
+    // Guaranteed Clean Entry on Reload / Back
     window.addEventListener('pageshow', (e) => {
       if (e.persisted) {
-        resetToCleanLobby();
+        document.getElementById('lobbyOverlay').style.display = 'flex';
       }
     });
 
     function bindConnEvents() {
       conn.on('open', () => {
+        updateStatus('Connected ⚡', true);
         if (currentVid && player && player.getCurrentTime) {
           sendDirect({ 
             cmd: 'LOAD_VIDEO', 
@@ -684,60 +780,28 @@
           });
         }
       });
-      conn.on('data', handleDirectCommand);
+      conn.on('data', handleRemoteCommand);
       conn.on('close', handleFriendDisconnect);
     }
 
     function handleFriendDisconnect() {
-      const stat = document.getElementById('stat');
-      stat.innerText = 'Solo';
-      stat.className = 'badge';
+      updateStatus(isHost ? 'Waiting for friend...' : 'Solo', false);
       setLog('Friend left the room');
-      document.getElementById('chatCard').style.display = 'none';
-      showToast('Friend has left the room!');
+      showToast('⚠️ Friend has left the room!', true);
     }
 
-    // Direct Instant Transmission (Bypasses Echo Loops)
     function sendDirect(payload) {
-      if (conn && conn.open && Date.now() > ignoreUntil) {
+      if (conn && conn.open && Date.now() > ignoreEventsUntil) {
         conn.send(payload);
       }
     }
 
-    // 2. YouTube Player Setup
-    function onYouTubeIframeAPIReady() {
-      initPlayer();
-    }
-
-    function initPlayer(callback) {
-      if (player) return;
-      player = new YT.Player('ytPlayer', {
-        height: '100%',
-        width: '100%',
-        playerVars: {
-          playsinline: 1,
-          rel: 0,
-          enablejsapi: 1,
-          origin: window.location.origin
-        },
-        events: {
-          'onReady': () => {
-            isPlayerReady = true;
-            try { player.unMute(); } catch(e){}
-            setInterval(checkInstantSeek, 100);
-            setInterval(hostDriftHeartbeat, 2000);
-            if (callback) callback();
-          },
-          'onStateChange': onPlayerState
-        }
-      });
-    }
-
+    // 3. Play Video Engine
     function playVideoById(videoId, startSeconds = 0, autoPlay = true) {
       currentVid = videoId;
       document.getElementById('welcomeScreen').style.display = 'none';
 
-      const exec = () => {
+      if (player && isPlayerReady) {
         player.loadVideoById({
           videoId: videoId,
           startSeconds: startSeconds
@@ -748,18 +812,12 @@
         } else {
           setTimeout(() => player.pauseVideo(), 100);
         }
-      };
-
-      if (!player) {
-        initPlayer(exec);
-      } else {
-        exec();
       }
     }
 
-    // Direct State Handler
-    function onPlayerState(e) {
-      if (Date.now() < ignoreUntil || !player) return;
+    // YouTube State Change
+    function onPlayerStateChange(e) {
+      if (Date.now() < ignoreEventsUntil || !player) return;
       const t = player.getCurrentTime();
 
       if (e.data === YT.PlayerState.PLAYING) {
@@ -769,31 +827,31 @@
       }
     }
 
-    // Fast 100ms Instant Seek Detection
-    function checkInstantSeek() {
-      if (!player || !isPlayerReady || Date.now() < ignoreUntil) return;
+    // Fast 100ms Jump / Scrub Detector
+    function trackPlaybackJump() {
+      if (!player || !isPlayerReady || Date.now() < ignoreEventsUntil) return;
       const t = player.getCurrentTime();
-      if (Math.abs(t - lastKnownTime) > 0.8 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
+      if (Math.abs(t - lastKnownPos) > 1.2 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
         sendDirect({ 
           cmd: 'SEEK', 
           time: t, 
           isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
         });
       }
-      lastKnownTime = t;
+      lastKnownPos = t;
     }
 
-    // Host Only Heartbeat: Keeps exact same millisecond alignment
-    function hostDriftHeartbeat() {
+    // Host Master Heartbeat
+    function hostSyncHeartbeat() {
       if (isHost && conn && conn.open && player && isPlayerReady) {
         if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-          conn.send({ cmd: 'HEARTBEAT', time: player.getCurrentTime() });
+          conn.send({ cmd: 'BEAT', time: player.getCurrentTime() });
         }
       }
     }
 
-    // 3. Instant RPC Receiver (Zero Delay, 100% Anti-Echo)
-    function handleDirectCommand(d) {
+    // 4. Remote Execution & Dynamic Catch-up (No Buffering Lag)
+    function handleRemoteCommand(d) {
       if (d.cmd === 'FRIEND_LEFT') {
         handleFriendDisconnect();
         return;
@@ -804,8 +862,8 @@
         return;
       }
 
-      // Lock local event emitter for 1000ms to stop bounce-back echo
-      ignoreUntil = Date.now() + 1000;
+      // 1200ms Anti-Echo Lock
+      ignoreEventsUntil = Date.now() + 1200;
 
       if (d.cmd === 'LOAD_VIDEO') {
         playVideoById(d.videoId, d.time || 0, d.isPlaying);
@@ -813,18 +871,20 @@
       }
 
       if (d.cmd === 'PLAY' && player) {
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.3) {
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) {
           player.seekTo(d.time, true);
         }
         player.unMute();
         player.playVideo();
+        player.setPlaybackRate(1.0);
       }
 
       if (d.cmd === 'PAUSE' && player) {
         player.pauseVideo();
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.3) {
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) {
           player.seekTo(d.time, true);
         }
+        player.setPlaybackRate(1.0);
       }
 
       if (d.cmd === 'SEEK' && player) {
@@ -835,23 +895,32 @@
         } else {
           player.pauseVideo();
         }
+        player.setPlaybackRate(1.0);
         setLog('Skipped to ' + Math.floor(d.time) + 's');
       }
 
-      // Client Smooth Clock Alignment
-      if (d.cmd === 'HEARTBEAT' && !isHost && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
-        const diff = Math.abs(player.getCurrentTime() - d.time);
-        if (diff > 0.45) { // 0.45s se zyada gap hua toh smoothly match karega
+      // Smooth Speed Alignment: No Buffer Thrashing
+      if (d.cmd === 'BEAT' && !isHost && player && player.getPlayerState() === YT.PlayerState.PLAYING) {
+        const drift = d.time - player.getCurrentTime();
+
+        if (Math.abs(drift) < 0.25) {
+          player.setPlaybackRate(1.0);
+        } else if (drift > 0.25 && drift <= 1.8) {
+          player.setPlaybackRate(1.15); // Silently catch up
+        } else if (drift < -0.25 && drift >= -1.8) {
+          player.setPlaybackRate(0.85); // Silently slow down
+        } else if (Math.abs(drift) > 1.8) {
           player.seekTo(d.time, true);
+          player.setPlaybackRate(1.0);
         }
       }
 
       setTimeout(() => {
-        if (player && player.getCurrentTime) lastKnownTime = player.getCurrentTime();
-      }, 300);
+        if (player && player.getCurrentTime) lastKnownPos = player.getCurrentTime();
+      }, 400);
     }
 
-    // 4. Chat Functions
+    // 5. Chat Functions
     function sendChat() {
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
@@ -871,7 +940,7 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // 5. YouTube-Style Real-time Suggestions (JSONP)
+    // 6. YouTube Auto-Suggestions (JSONP)
     function handleTyping(e) {
       const q = e.target.value.trim();
       clearTimeout(suggestTimer);
@@ -939,7 +1008,7 @@
       }
     });
 
-    // 6. Fast Multi-Server YouTube Search
+    // 7. Fast Multi-Server YouTube Search
     function extractId(url) {
       const m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?/\s]{11})/);
       return m ? m[1] : null;
@@ -1047,7 +1116,26 @@
       }
     }
 
-    // 7. Helpers
+    // 8. Sharing & Helpers
+    function copyPin() {
+      navigator.clipboard.writeText(myActivePin);
+      showToast('PIN Copied: ' + myActivePin);
+    }
+
+    function shareRoomLink() {
+      const shareUrl = window.location.origin + window.location.pathname + '#' + myActivePin;
+      if (navigator.share) {
+        navigator.share({
+          title: 'Join my Viku Watch Party',
+          text: 'Watch YouTube together with me on Viku! Room PIN: ' + myActivePin,
+          url: shareUrl
+        }).catch(() => {});
+      } else {
+        navigator.clipboard.writeText(shareUrl);
+        showToast('Invite link copied! Send to friend.');
+      }
+    }
+
     function toggleFullscreen() {
       const box = document.getElementById('playerBox');
       if (!document.fullscreenElement) {
@@ -1058,15 +1146,12 @@
       }
     }
 
-    function copyPin() {
-      const pin = document.getElementById('myPin').value;
-      navigator.clipboard.writeText(pin);
-      alert('PIN Copied: ' + pin);
-    }
-
     function setLog(t) { document.getElementById('logText').innerText = t; }
 
-    window.onload = init;
+    window.onload = () => {
+      initPeer();
+      checkUrlHash();
+    };
   </script>
 </body>
 </html>
