@@ -26,11 +26,11 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
-    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 10px; min-height: 100vh; }
+    body { background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 8px; min-height: 100vh; }
     
     .container {
       width: 100%;
-      max-width: 520px;
+      max-width: 640px;
       display: flex;
       flex-direction: column;
       gap: 10px;
@@ -126,37 +126,30 @@
     .sep:not(:empty)::after { margin-left: 10px; }
 
     /* ============================================================
-       THEATER LAYOUT
+       THEATER LAYOUT (HIDDEN INITIALLY)
        ============================================================ */
     #theaterRoom {
-      display: none;
+      display: none; /* Connect ya Solo hone se pehle bilkul nahi dikhega */
       flex-direction: column;
       gap: 10px;
     }
 
-    .theater-left {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    @media (max-width: 849px) {
+      .theater-left { display: contents; }
+      .theater-right { display: flex; flex-direction: column; gap: 10px; }
     }
 
-    .theater-right {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    /* Mobile Sticky Video: Chat ke waqt yahin locked rahega */
+    /* 100% Sticky Video Player on Mobile */
     .sticky-player-box {
       position: sticky;
       top: 0;
-      z-index: 40;
+      z-index: 50;
       background: var(--bg);
-      padding-bottom: 4px;
+      padding: 2px 0 6px 0;
     }
 
-    /* Sirf search focus par hi player unstick hoga */
-    body.search-typing .sticky-player-box {
+    /* Sirf search focus hone par unstick hoga */
+    body.search-mode .sticky-player-box {
       position: static !important;
     }
 
@@ -165,13 +158,13 @@
       width: 100%;
       aspect-ratio: 16 / 9;
       background: #0f172a;
-      border-radius: 12px;
+      border-radius: 14px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
     }
     #ytPlayer { width: 100%; height: 100%; }
 
-    /* Simple Welcome Screen */
+    /* Welcome Screen */
     .welcome-screen {
       position: absolute;
       inset: 0;
@@ -187,7 +180,7 @@
     }
     .welcome-title {
       font-family: 'Outfit', sans-serif;
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 800;
       letter-spacing: -0.5px;
       background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
@@ -195,11 +188,11 @@
       -webkit-text-fill-color: transparent;
       margin-bottom: 4px;
     }
-    .welcome-sub { font-size: 12px; color: #94a3b8; }
+    .welcome-sub { font-size: 13px; color: #94a3b8; }
 
-    .control-row { display: flex; justify-content: space-between; align-items: center; padding: 2px 2px; }
+    .control-row { display: flex; justify-content: space-between; align-items: center; padding: 4px 2px 0 2px; }
 
-    /* YouTube-style Auto Suggestions */
+    /* Suggestions Dropdown */
     .suggest-box {
       position: absolute;
       top: 100%;
@@ -249,8 +242,8 @@
     .item:hover { background: #eff6ff; }
     .thumb-wrap {
       position: relative;
-      width: 90px;
-      height: 52px;
+      width: 95px;
+      height: 55px;
       border-radius: 6px;
       overflow: hidden;
       flex-shrink: 0;
@@ -273,36 +266,34 @@
     .item-c { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
     /* ============================================================
-       CHAT SECTION WITH FADED "VIKU" WATERMARK
+       LARGE CHAT (BABY PINK BACKGROUND + FAINT WATERMARK)
        ============================================================ */
     .chat-card { display: flex; flex-direction: column; gap: 8px; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; }
     
     .chat-logs {
       position: relative;
-      height: 135px;
+      height: 250px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 6px;
-      padding: 10px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: #f8fafc;
+      gap: 8px;
+      padding: 12px;
+      border: 1.5px solid #fce7f3;
+      border-radius: 12px;
+      background: linear-gradient(180deg, #fff3f6 0%, #ffffff 100%);
     }
 
-    /* Faded Watermark in Chat */
-    .chat-logs::before {
-      content: 'VIKU';
+    .chat-watermark {
       position: absolute;
       top: 50%;
       left: 50%;
       transform: translate(-50%, -50%);
       font-family: 'Outfit', sans-serif;
-      font-size: 54px;
+      font-size: 68px;
       font-weight: 900;
-      letter-spacing: 6px;
-      color: rgba(100, 116, 139, 0.08); /* Soft faded light slate */
+      letter-spacing: 8px;
+      color: rgba(244, 114, 182, 0.05); /* Faint & soft watermark */
       pointer-events: none;
       user-select: none;
       z-index: 0;
@@ -310,39 +301,53 @@
 
     .msg {
       position: relative;
-      z-index: 1; /* Messages hamesha watermark ke upar rahenge */
-      max-width: 80%;
-      padding: 6px 10px;
-      font-size: 12px;
+      z-index: 2;
+      max-width: 82%;
+      padding: 7px 12px;
+      font-size: 13px;
       line-height: 1.4;
       word-break: break-word;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .msg.me { align-self: flex-end; background: var(--primary); color: #ffffff; border-radius: 12px 12px 2px 12px; }
-    .msg.them { align-self: flex-start; background: #e2e8f0; color: #0f172a; border-radius: 12px 12px 12px 2px; }
+    .msg.me {
+      align-self: flex-end;
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 14px 14px 2px 14px;
+    }
+    .msg.them {
+      align-self: flex-start;
+      background: #ffffff;
+      color: #0f172a;
+      border: 1px solid #fce7f3;
+      border-radius: 14px 14px 14px 2px;
+    }
     .info-bar { font-size: 11px; color: var(--muted); }
 
     /* ============================================================
-       LAPTOP / DESKTOP (2 Columns Side-by-Side)
+       LAPTOP / DESKTOP (2.2:1 Ratio)
        ============================================================ */
     @media (min-width: 850px) {
       body { padding: 20px; }
-      .container { max-width: 1200px; }
+      .container { max-width: 1300px; }
       
       #theaterRoom {
-        display: none; /* JS sets display: grid */
-        grid-template-columns: minmax(0, 1.8fr) minmax(340px, 1.1fr);
-        gap: 18px;
+        display: none;
+        grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr);
+        gap: 20px;
         align-items: start;
       }
+      .theater-left { display: flex; flex-direction: column; gap: 8px; }
+      .theater-right { display: flex; flex-direction: column; gap: 10px; }
       .sticky-player-box {
         position: static;
-        padding-bottom: 0;
+        padding: 0;
       }
       .chat-logs {
-        height: 250px;
+        height: 340px;
       }
-      .chat-logs::before {
-        font-size: 72px;
+      .chat-watermark {
+        font-size: 90px;
       }
     }
   </style>
@@ -356,7 +361,7 @@
       <div id="stat" class="badge">Lobby</div>
     </div>
 
-    <!-- 1. LOBBY (PIN Screen) -->
+    <!-- 1. LOBBY (PIN Screen - Shuru me sirf yehi dikhega) -->
     <div id="lobbyRoom" class="card">
       <div>
         <div class="title">Your PIN</div>
@@ -381,7 +386,7 @@
       <button class="outline" onclick="openSolo()">Watch Solo</button>
     </div>
 
-    <!-- 2. THEATER (Unlocked after Connect / Solo) -->
+    <!-- 2. THEATER (Connect ya Solo dabane par hi khulega) -->
     <div id="theaterRoom">
       <!-- LEFT SIDE: YouTube Video Player & Controls -->
       <div class="theater-left">
@@ -421,13 +426,18 @@
           <div id="searchList" class="results-list" style="display: none;"></div>
         </div>
 
-        <!-- Live Chat Card with Viku Watermark -->
+        <!-- Big Live Chat Card (Solo mode me hidden rahega) -->
         <div class="card chat-card" id="chatCard">
           <div class="chat-header">
             <div class="title">Live Chat</div>
             <span style="font-size: 11px; color: #10b981; font-weight: 600;">● Active</span>
           </div>
-          <div id="chatLogs" class="chat-logs"></div>
+
+          <!-- Large Chat Box with Faint Watermark -->
+          <div id="chatLogs" class="chat-logs">
+            <div class="chat-watermark">VIKU</div>
+          </div>
+
           <div class="row">
             <input id="chatInput" placeholder="Send a message..." onkeydown="if(event.key==='Enter') sendChat()" />
             <button onclick="sendChat()">Send</button>
@@ -441,6 +451,7 @@
   <script>
     let player = null, peer, conn, remote = false, lastTime = 0, currentVid = null;
     let suggestTimer = null;
+    let isConnectedMode = false;
 
     // 1. Peer Setup & PIN
     function init() {
@@ -452,25 +463,25 @@
       peer.on('connection', (c) => {
         conn = c;
         bindConnEvents();
-        unlockTheater('Connected ⚡');
+        unlockTheater('Connected ⚡', true);
       });
 
       peer.on('error', (err) => {
         if (err.type === 'unavailable-id') init();
       });
 
-      setupKeyboardFocus();
+      setupStickyRule();
     }
 
-    // Precise Keyboard Handling: Video only un-sticks on SEARCH, NOT on Chat
-    function setupKeyboardFocus() {
+    // STICKY RULE: Chat par 100% STICKY rahega, Search par UN-STICK hoga
+    function setupStickyRule() {
       const searchBox = document.getElementById('searchBox');
       const searchCard = document.getElementById('searchCard');
       const chatInput = document.getElementById('chatInput');
 
-      // A) Jab search par click ho -> Player un-stick hoga taaki search upar scroll ho sake
+      // 1. Search focus: Un-stick video taaki search input keyboard ke upar scroll ho sake
       searchBox.addEventListener('focus', () => {
-        document.body.classList.add('search-typing');
+        document.body.classList.add('search-mode');
         setTimeout(() => {
           searchCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }, 250);
@@ -478,16 +489,15 @@
 
       searchBox.addEventListener('blur', () => {
         setTimeout(() => {
-          document.body.classList.remove('search-typing');
+          document.body.classList.remove('search-mode');
         }, 200);
       });
 
-      // B) Jab chat par click ho -> Player 100% STICKY rahega, un-stick BILKUL NAHI hoga
+      // 2. Chat focus: search-mode bilkul off rahega taaki player 100% top par chipka rahe
       chatInput.addEventListener('focus', () => {
-        document.body.classList.remove('search-typing');
-        setTimeout(() => {
-          chatInput.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        }, 250);
+        document.body.classList.remove('search-mode');
+        const chatLogs = document.getElementById('chatLogs');
+        chatLogs.scrollTop = chatLogs.scrollHeight;
       });
     }
 
@@ -496,21 +506,32 @@
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
       conn = peer.connect('viku-' + pin);
       bindConnEvents();
-      unlockTheater('Connected ⚡');
+      unlockTheater('Connected ⚡', true);
     }
 
     function openSolo() {
-      unlockTheater('Solo');
+      unlockTheater('Solo', false); // Solo me chat false rahegi
     }
 
-    function unlockTheater(mode) {
+    // Unlocks Theater: Solo vs Connected rule
+    function unlockTheater(mode, showChat) {
+      isConnectedMode = showChat;
       document.getElementById('lobbyRoom').style.display = 'none';
+
       const theater = document.getElementById('theaterRoom');
       theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
-      
+
+      // SOLO ME CHAT HIDE, CONNECTED ME SHOW
+      const chatCard = document.getElementById('chatCard');
+      chatCard.style.display = showChat ? 'flex' : 'none';
+
       const stat = document.getElementById('stat');
       stat.innerText = mode;
-      if (mode.includes('Connected')) stat.classList.add('on');
+      if (mode.includes('Connected')) {
+        stat.classList.add('on');
+      } else {
+        stat.classList.remove('on');
+      }
     }
 
     window.addEventListener('resize', () => {
@@ -532,6 +553,7 @@
         stat.innerText = 'Solo';
         stat.classList.remove('on');
         setLog('Friend left the room');
+        document.getElementById('chatCard').style.display = 'none'; // Disconnect hone par chat hide
       });
     }
 
