@@ -6,6 +6,7 @@
   <meta name="referrer" content="origin" />
   <title>Viku - Watch Together</title>
 
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -29,186 +30,64 @@
     * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
     body { background: var(--bg); color: var(--text); display: flex; justify-content: center; padding: 8px; min-height: 100vh; position: relative; }
     
-    .container {
-      width: 100%;
-      max-width: 640px;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      transition: max-width 0.3s ease;
-    }
+    .container { width: 100%; max-width: 640px; display: flex; flex-direction: column; gap: 10px; transition: max-width 0.3s ease; }
 
-    /* Floating Toast Notification */
+    /* Toast Notification */
     .toast-banner {
-      position: fixed;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-80px);
-      background: #1e293b;
-      color: #ffffff;
-      padding: 9px 18px;
-      border-radius: 30px;
-      font-size: 13px;
-      font-weight: 700;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.15);
-      z-index: 1000;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
-      opacity: 0;
-      pointer-events: none;
+      position: fixed; top: 14px; left: 50%; transform: translateX(-50%) translateY(-80px);
+      background: #1e293b; color: #ffffff; padding: 9px 18px; border-radius: 30px; font-size: 13px;
+      font-weight: 700; box-shadow: 0 10px 25px rgba(0,0,0,0.15); z-index: 1000; display: flex;
+      align-items: center; gap: 8px; transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.25s ease;
+      opacity: 0; pointer-events: none;
     }
-    .toast-banner.show {
-      transform: translateX(-50%) translateY(0);
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .toast-banner.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
     .toast-banner.alert { background: #fff7ed; color: #9a3412; border: 1px solid #fed7aa; }
 
-    /* Top Bar */
-    .header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      background: var(--card-bg);
-      padding: 10px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-    }
-    .logo {
-      font-family: 'Outfit', sans-serif;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--primary);
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .header-actions {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .badge {
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 10px;
-      border-radius: 20px;
-      background: #f1f5f9;
-      color: var(--muted);
-      text-transform: uppercase;
-    }
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; background: var(--card-bg); padding: 10px 14px; border-radius: 12px; border: 1px solid var(--border); }
+    .logo { font-family: 'Outfit', sans-serif; font-size: 20px; font-weight: 800; color: var(--primary); display: flex; align-items: center; gap: 6px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; }
+    .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: var(--muted); text-transform: uppercase; }
     .badge.on { background: #dcfce7; color: #16a34a; }
     .badge.waiting { background: #fef3c7; color: #b45309; }
 
     .leave-btn {
-      display: none;
-      padding: 5px 11px;
-      font-size: 11px;
-      font-weight: 700;
-      border-radius: 20px;
-      border: 1px solid #fecaca;
-      background: var(--danger-bg);
-      color: var(--danger);
-      cursor: pointer;
-      align-items: center;
-      gap: 4px;
+      display: none; padding: 5px 11px; font-size: 11px; font-weight: 700; border-radius: 20px; border: 1px solid #fecaca;
+      background: var(--danger-bg); color: var(--danger); cursor: pointer; align-items: center; gap: 4px;
     }
     .leave-btn:hover { background: #fee2e2; }
 
     /* LOBBY OVERLAY */
     #lobbyOverlay {
-      position: fixed;
-      inset: 0;
-      background: var(--bg);
-      z-index: 900;
-      display: flex;
-      justify-content: center;
-      padding: 14px;
-      overflow-y: auto;
+      position: fixed; inset: 0; background: var(--bg); z-index: 900; display: flex; justify-content: center; padding: 14px; overflow-y: auto;
     }
-    .lobby-content {
-      width: 100%;
-      max-width: 500px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-top: 25px;
-    }
-    .card {
-      background: var(--card-bg);
-      padding: 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
+    .lobby-content { width: 100%; max-width: 500px; display: flex; flex-direction: column; gap: 12px; margin-top: 25px; }
+    .card { background: var(--card-bg); padding: 14px; border-radius: 12px; border: 1px solid var(--border); display: flex; flex-direction: column; gap: 10px; }
+    .title { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
 
-    .waiting-box {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 20px 10px;
-      gap: 14px;
-    }
+    /* Waiting Box */
+    .waiting-box { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 20px 10px; gap: 14px; }
     .pulse-loader {
-      width: 48px;
-      height: 48px;
-      border-radius: 50%;
-      background: rgba(37, 99, 235, 0.12);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      width: 48px; height: 48px; border-radius: 50%; background: rgba(37, 99, 235, 0.12); display: flex; align-items: center; justify-content: center;
       animation: pulse 1.8s infinite ease-in-out;
     }
-    @keyframes pulse {
-      0% { transform: scale(0.92); opacity: 0.7; }
-      50% { transform: scale(1.1); opacity: 1; }
-      100% { transform: scale(0.92); opacity: 0.7; }
-    }
+    @keyframes pulse { 0% { transform: scale(0.92); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } 100% { transform: scale(0.92); opacity: 0.7; } }
     .pin-display {
-      font-family: 'Outfit', monospace;
-      font-size: 28px;
-      font-weight: 800;
-      letter-spacing: 5px;
-      color: var(--primary);
-      background: #eff6ff;
-      padding: 8px 18px;
-      border-radius: 10px;
-      border: 1px dashed #bfdbfe;
+      font-family: 'Outfit', monospace; font-size: 28px; font-weight: 800; letter-spacing: 5px; color: var(--primary);
+      background: #eff6ff; padding: 8px 18px; border-radius: 10px; border: 1px dashed #bfdbfe;
     }
 
+    /* Inputs & Buttons */
     .row { display: flex; gap: 8px; width: 100%; position: relative; }
-    input {
-      flex: 1;
-      min-width: 0;
-      padding: 10px 12px;
-      font-size: 14px;
-      border: 1.5px solid var(--border);
-      border-radius: 8px;
-      outline: none;
-      background: #f8fafc;
-    }
+    input { flex: 1; min-width: 0; padding: 10px 12px; font-size: 14px; border: 1.5px solid var(--border); border-radius: 8px; outline: none; background: #f8fafc; }
     input:focus { border-color: var(--primary); background: #ffffff; }
     .pin-input { font-family: 'Outfit', monospace; font-size: 19px; font-weight: 700; letter-spacing: 4px; text-align: center; }
 
     button {
-      padding: 10px 16px;
-      font-size: 13px;
-      font-weight: 600;
-      border-radius: 8px;
-      border: none;
-      background: var(--primary);
-      color: #ffffff;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      white-space: nowrap;
+      padding: 10px 16px; font-size: 13px; font-weight: 600; border-radius: 8px; border: none; background: var(--primary);
+      color: #ffffff; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
     }
+    button:active { transform: scale(0.97); }
     button.gray { background: #f1f5f9; color: #334155; }
     button.outline { background: transparent; border: 1.5px solid var(--border); color: #475569; }
     button.large-btn { padding: 12px 18px; font-size: 14px; width: 100%; }
@@ -219,76 +98,38 @@
     .sep:not(:empty)::after { margin-left: 10px; }
 
     /* THEATER LAYOUT */
-    #theaterRoom {
-      display: none;
-      flex-direction: column;
-      gap: 10px;
-    }
+    #theaterRoom { display: none; flex-direction: column; gap: 10px; }
 
     @media (max-width: 849px) {
       .theater-left { display: contents; }
       .theater-right { display: flex; flex-direction: column; gap: 10px; }
     }
 
-    .sticky-player-box {
-      position: sticky;
-      top: 0;
-      z-index: 50;
-      background: var(--bg);
-      padding: 2px 0 6px 0;
-    }
+    .sticky-player-box { position: sticky; top: 0; z-index: 50; background: var(--bg); padding: 2px 0 6px 0; }
     body.search-mode .sticky-player-box { position: static !important; }
 
-    .player-wrap {
-      position: relative;
-      width: 100%;
-      aspect-ratio: 16 / 9;
-      background: #0f172a;
-      border-radius: 14px;
-      overflow: hidden;
-      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1);
-    }
+    .player-wrap { position: relative; width: 100%; aspect-ratio: 16 / 9; background: #0f172a; border-radius: 14px; overflow: hidden; box-shadow: 0 6px 18px rgba(0, 0, 0, 0.1); }
     #ytPlayer { width: 100%; height: 100%; }
 
     .welcome-screen {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at 50% 40%, #1e293b 0%, #090d16 100%);
-      color: #ffffff;
-      text-align: center;
-      padding: 16px;
-      z-index: 5;
+      position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: radial-gradient(circle at 50% 40%, #1e293b 0%, #090d16 100%); color: #ffffff; text-align: center; padding: 16px; z-index: 5;
     }
-    .welcome-title {
-      font-family: 'Outfit', sans-serif;
-      font-size: 32px;
-      font-weight: 800;
-      background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 4px;
-    }
+    .welcome-title { font-family: 'Outfit', sans-serif; font-size: 32px; font-weight: 800; background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 4px; }
     .welcome-sub { font-size: 13px; color: #94a3b8; }
 
     .control-row { display: flex; justify-content: flex-end; align-items: center; padding: 4px 2px 0 2px; }
 
-    /* Suggestions & List */
+    /* Suggestions */
     .suggest-box {
-      position: absolute; top: 100%; left: 0; right: 0; background: #ffffff;
-      border: 1px solid var(--border); border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); z-index: 60; margin-top: 4px;
-      display: none; flex-direction: column; overflow: hidden;
+      position: absolute; top: 100%; left: 0; right: 0; background: #ffffff; border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); z-index: 60; margin-top: 4px; display: none; flex-direction: column; overflow: hidden;
     }
-    .suggest-item {
-      display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; color: #1e293b; cursor: pointer; border-bottom: 1px solid #f1f5f9;
-    }
+    .suggest-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; color: #1e293b; cursor: pointer; border-bottom: 1px solid #f1f5f9; }
     .suggest-item:hover { background: #f8fafc; color: var(--primary); }
     .suggest-icon { color: #94a3b8; width: 14px; height: 14px; flex-shrink: 0; }
 
+    /* Search Results */
     .results-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
     .item { display: flex; gap: 10px; padding: 6px; border-radius: 10px; background: #f8fafc; cursor: pointer; border: 1px solid var(--border); }
     .item:hover { background: #eff6ff; }
@@ -307,25 +148,34 @@
       padding: 12px; border: 1.5px solid #fce7f3; border-radius: 12px; background: linear-gradient(180deg, #fff3f6 0%, #ffffff 100%);
     }
     .chat-watermark {
-      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-      font-family: 'Outfit', sans-serif; font-size: 68px; font-weight: 900; letter-spacing: 8px;
-      color: rgba(244, 114, 182, 0.05); pointer-events: none; user-select: none; z-index: 0;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-family: 'Outfit', sans-serif;
+      font-size: 68px; font-weight: 900; letter-spacing: 8px; color: rgba(244, 114, 182, 0.05); pointer-events: none; user-select: none; z-index: 0;
     }
-    .msg {
-      position: relative; z-index: 2; max-width: 82%; padding: 7px 12px; font-size: 13px; line-height: 1.4;
-      word-break: break-word; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
-    }
+    .msg { position: relative; z-index: 2; max-width: 82%; padding: 7px 12px; font-size: 13px; line-height: 1.4; word-break: break-word; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04); }
     .msg.me { align-self: flex-end; background: var(--primary); color: #ffffff; border-radius: 14px 14px 2px 14px; }
     .msg.them { align-self: flex-start; background: #ffffff; color: #0f172a; border: 1px solid #fce7f3; border-radius: 14px 14px 14px 2px; }
 
+    /* ============================================================
+       LAPTOP / DESKTOP ALIGNMENT (Widened Video, perfectly aligned chat)
+       ============================================================ */
     @media (min-width: 850px) {
       body { padding: 20px; }
-      .container { max-width: 1300px; }
-      #theaterRoom { grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr); gap: 20px; align-items: start; }
-      .theater-left { display: flex; flex-direction: column; gap: 8px; }
-      .theater-right { display: flex; flex-direction: column; gap: 10px; }
-      .sticky-player-box { position: static; padding: 0; }
-      .chat-logs { height: 340px; }
+      .container { max-width: 1400px; height: calc(100vh - 40px); display: flex; flex-direction: column; }
+      
+      #theaterRoom {
+        display: none;
+        grid-template-columns: 2.6fr 1fr; /* Make video significantly wider */
+        gap: 20px;
+        align-items: stretch; /* Forces both columns to match height */
+        flex: 1;
+      }
+      .theater-left { display: flex; flex-direction: column; }
+      .sticky-player-box { position: static; padding: 0; flex: 1; display: flex; flex-direction: column; }
+      .player-wrap { flex: 1; min-height: 480px; } /* Ensures video box takes all available space */
+      
+      .theater-right { display: flex; flex-direction: column; gap: 10px; height: 100%; }
+      .chat-card { flex: 1; display: flex; flex-direction: column; }
+      .chat-logs { flex: 1; height: auto; min-height: 250px; } /* Chat stretches down to exactly match video */
       .chat-watermark { font-size: 90px; }
     }
   </style>
@@ -334,7 +184,7 @@
 
   <!-- Floating Toast Notification -->
   <div id="toastNotification" class="toast-banner">
-    <span id="toastMsg">Friend joined the room</span>
+    <span id="toastMsg">Notification</span>
   </div>
 
   <!-- 1. FULLSCREEN LOBBY OVERLAY -->
@@ -354,22 +204,18 @@
             Create Room
           </button>
         </div>
-
         <div class="sep">OR JOIN WITH CODE</div>
-
         <div>
           <div class="row">
             <input id="friendPin" class="pin-input" type="number" placeholder="Enter PIN" />
-            <button onclick="connectFriend()">Join Room</button>
+            <button onclick="connectFriend()">Join</button>
           </div>
         </div>
-
         <div class="sep">OR</div>
-
         <button class="outline" onclick="openSolo()">Watch Solo (No Friend)</button>
       </div>
 
-      <!-- Connecting/Waiting Card -->
+      <!-- Host/Friend Connecting Card -->
       <div id="waitingCard" class="card" style="display: none;">
         <div class="waiting-box">
           <div class="pulse-loader">
@@ -382,14 +228,14 @@
           </div>
 
           <div>
-            <div id="waitingText" style="font-size: 16px; font-weight: 700; color: #0f172a;">Waiting for friend to join...</div>
-            <div id="waitingSub" style="font-size: 12px; color: var(--muted); margin-top: 2px;">Share your Room PIN with your friend</div>
+            <div id="waitingText" style="font-size: 16px; font-weight: 700; color: #0f172a;">Waiting for friend...</div>
+            <div id="waitingSub" style="font-size: 12px; color: var(--muted); margin-top: 2px;">Share your Room PIN</div>
           </div>
 
           <div id="pinDisplayBox" style="width: 100%;">
             <div id="displayWaitingPin" class="pin-display">.....</div>
             <div class="row" style="max-width: 280px; margin: 14px auto 0 auto;">
-              <button class="gray" style="flex: 1;" onclick="copyPin()">Copy PIN</button>
+              <button class="gray" style="flex: 1;" onclick="copyPin()">Copy</button>
               <button style="flex: 1;" onclick="shareRoomLink()">Share 🔗</button>
             </div>
           </div>
@@ -400,7 +246,7 @@
     </div>
   </div>
 
-  <!-- 2. THEATER (Renders underneath) -->
+  <!-- 2. THEATER (Renders only after confirmed Ping-Pong connection) -->
   <div class="container">
     <div class="header">
       <div class="logo">▶ Viku</div>
@@ -411,7 +257,7 @@
     </div>
 
     <div id="theaterRoom">
-      <!-- LEFT SIDE: YouTube Player & Controls -->
+      <!-- LEFT SIDE: YouTube Player -->
       <div class="theater-left">
         <div class="sticky-player-box">
           <div id="playerBox" class="player-wrap">
@@ -421,23 +267,20 @@
             </div>
             <div id="ytPlayer"></div>
           </div>
-
           <div class="control-row">
-            <button class="gray" onclick="toggleFullscreen()">⛶ Fullscreen</button>
+            <button class="gray" style="padding: 6px 12px; font-size: 12px;" onclick="toggleFullscreen()">⛶ Fullscreen</button>
           </div>
         </div>
       </div>
 
-      <!-- RIGHT SIDE: Search Bar & Live Chat -->
+      <!-- RIGHT SIDE: Search & Chat -->
       <div class="theater-right">
         <!-- Search Card -->
         <div class="card" id="searchCard">
-          <div class="title">Search YouTube or Paste Link</div>
+          <div class="title">Search YouTube</div>
           <div class="row">
-            <input id="searchBox" placeholder="Type song name or YouTube link..." 
-                   autocomplete="off"
-                   oninput="handleTyping(event)" 
-                   onkeydown="if(event.key==='Enter') searchOrPlay()" />
+            <input id="searchBox" placeholder="Song name or link..." 
+                   autocomplete="off" oninput="handleTyping(event)" onkeydown="if(event.key==='Enter') searchOrPlay()" />
             <button onclick="searchOrPlay()">Search</button>
             <div id="suggestBox" class="suggest-box"></div>
           </div>
@@ -450,13 +293,11 @@
             <div class="title">Live Chat</div>
             <span style="font-size: 11px; color: #10b981; font-weight: 600;">● Active</span>
           </div>
-
           <div id="chatLogs" class="chat-logs">
             <div class="chat-watermark">VIKU</div>
           </div>
-
           <div class="row">
-            <input id="chatInput" placeholder="Send a message..." onkeydown="if(event.key==='Enter') sendChat()" />
+            <input id="chatInput" placeholder="Send a message..." autocomplete="off" onkeydown="if(event.key==='Enter') sendChat()" />
             <button onclick="sendChat()">Send</button>
           </div>
         </div>
@@ -471,18 +312,15 @@
     let myActivePin = null;
     let isRemoteAction = false;
     let lastKnownPos = 0;
+    let isHost = false;
 
     // 1. YouTube Iframe Initialization
-    function onYouTubeIframeAPIReady() {
+    function initYouTubePlayer() {
+      if (player || !window.YT || !window.YT.Player) return;
       player = new YT.Player('ytPlayer', {
         height: '100%',
         width: '100%',
-        playerVars: {
-          playsinline: 1,
-          rel: 0,
-          enablejsapi: 1,
-          origin: window.location.origin
-        },
+        playerVars: { playsinline: 1, rel: 0, enablejsapi: 1, origin: window.location.origin },
         events: {
           'onReady': () => {
             isPlayerReady = true;
@@ -493,50 +331,51 @@
         }
       });
     }
+    window.onYouTubeIframeAPIReady = initYouTubePlayer;
 
-    // 2. Peer Setup (With TURN Servers for strict Laptop Wi-Fi)
+    // 2. Powerful WebRTC Setup (Bypasses Firewalls/NAT)
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
       document.getElementById('displayWaitingPin').innerText = myActivePin;
 
-      // Google STUN + OpenRelay TURN (Bypasses all network blocks)
-      const peerConfig = {
+      // Robust STUN servers for Mobile vs Laptop NAT penetration
+      peer = new Peer('viku-' + myActivePin, {
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
-            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun.cloudflare.com:3478' }
           ]
         }
-      };
+      });
 
-      peer = new Peer('viku-' + myActivePin, peerConfig);
-
+      // HOST SIDE: Waiting for friend to connect
       peer.on('connection', (c) => {
-        // FRIEND JOINED HOST!
         conn = c;
-        bindConnEvents();
+        c.on('data', (d) => {
+          // PING-PONG HANDSHAKE: Ensure connection is 100% active before opening UI
+          if (d.cmd === 'PING') {
+            c.send({ cmd: 'PONG' });
+            // Network is fully verified. Open Theater.
+            enterTheater('Connected', true);
+            showToast('Friend joined the room! ⚡');
+            
+            if (currentVid && player && player.getCurrentTime) {
+              c.send({ cmd: 'LOAD_VIDEO', videoId: currentVid, time: player.getCurrentTime(), isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING });
+            }
+          } else {
+            handleRemoteCommand(d);
+          }
+        });
+        c.on('close', handleFriendDisconnect);
+        c.on('error', () => { showToast('Connection dropped', true); leaveRoom(); });
       });
 
       peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') {
-          initPeer();
-        } else {
-          showToast('Connection error', true);
-          leaveRoom();
-        }
+        if (err.type === 'unavailable-id') initPeer();
       });
 
       setupStickyRule();
-    }
-
-    function checkUrlHash() {
-      if (window.location.hash) {
-        const hashPin = window.location.hash.replace('#', '').trim();
-        if (hashPin && hashPin.length >= 4) {
-          document.getElementById('friendPin').value = hashPin;
-        }
-      }
     }
 
     function setupStickyRule() {
@@ -548,11 +387,7 @@
         document.body.classList.add('search-mode');
         setTimeout(() => { searchCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
       });
-
-      searchBox.addEventListener('blur', () => {
-        setTimeout(() => { document.body.classList.remove('search-mode'); }, 200);
-      });
-
+      searchBox.addEventListener('blur', () => { setTimeout(() => { document.body.classList.remove('search-mode'); }, 200); });
       chatInput.addEventListener('focus', () => {
         document.body.classList.remove('search-mode');
         const chatLogs = document.getElementById('chatLogs');
@@ -560,38 +395,72 @@
       });
     }
 
-    // Direct User Tap clears Autoplay Restrictions
     function unlockMediaEngine() {
+      initYouTubePlayer();
       if (player && typeof player.playVideo === 'function') {
         try {
           player.mute();
           player.playVideo();
-          setTimeout(() => {
-            if (!currentVid) player.pauseVideo();
-            player.unMute();
-          }, 80);
+          setTimeout(() => { if (!currentVid) player.pauseVideo(); player.unMute(); }, 80);
         } catch(e) {}
-      } else if (window.YT && window.YT.Player) {
-        onYouTubeIframeAPIReady();
       }
     }
 
-    // A) HOST FLOW: Create Room -> Shows Waiting Card
+    // A) HOST: Create Room
     function createRoomAsHost() {
+      isHost = true;
       unlockMediaEngine();
-      
       document.getElementById('initialCard').style.display = 'none';
-      
-      // Show waiting screen with PIN
-      document.getElementById('waitingText').innerText = 'Waiting for friend to join...';
-      document.getElementById('waitingSub').innerText = 'Share your Room PIN with your friend';
+      document.getElementById('waitingText').innerText = 'Waiting for friend...';
+      document.getElementById('waitingSub').innerText = 'Share your Room PIN';
       document.getElementById('pinDisplayBox').style.display = 'block';
       document.getElementById('waitingCard').style.display = 'flex';
-      
-      updateStatus('Waiting for friend', false);
+      updateStatus('Waiting...', false);
     }
 
-    // Enter Theater: Unhides Video Player & Chat (Only called when truly connected)
+    // B) FRIEND: Join Room
+    function connectFriend() {
+      const pin = document.getElementById('friendPin').value.trim();
+      if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
+      
+      isHost = false;
+      unlockMediaEngine();
+
+      document.getElementById('initialCard').style.display = 'none';
+      document.getElementById('waitingText').innerText = 'Connecting... ⏳';
+      document.getElementById('waitingSub').innerText = 'Establishing secure P2P connection';
+      document.getElementById('pinDisplayBox').style.display = 'none';
+      document.getElementById('waitingCard').style.display = 'flex';
+
+      conn = peer.connect('viku-' + pin, { reliable: true });
+
+      // FRIEND SIDE HANDSHAKE
+      conn.on('open', () => {
+        // Send Ping to verify WebRTC data channel is actually transmitting
+        conn.send({ cmd: 'PING' });
+      });
+
+      conn.on('data', (d) => {
+        if (d.cmd === 'PONG') {
+          // Handshake complete. Theater is safe to open.
+          enterTheater('Connected', true);
+          showToast('Connected to friend! ⚡');
+        } else {
+          handleRemoteCommand(d);
+        }
+      });
+
+      conn.on('close', handleFriendDisconnect);
+      conn.on('error', () => { showToast('Failed to connect', true); leaveRoom(); });
+    }
+
+    // C) SOLO FLOW
+    function openSolo() {
+      isHost = false;
+      unlockMediaEngine();
+      enterTheater('Solo', false);
+    }
+
     function enterTheater(mode, showChat) {
       document.getElementById('lobbyOverlay').style.display = 'none';
       document.getElementById('leaveBtn').style.display = 'inline-flex';
@@ -601,30 +470,7 @@
       
       document.getElementById('chatCard').style.display = showChat ? 'flex' : 'none';
       updateStatus(mode, mode === 'Connected');
-    }
-
-    // B) FRIEND FLOW: Join Room
-    function connectFriend() {
-      const pin = document.getElementById('friendPin').value.trim();
-      if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
-      
-      unlockMediaEngine();
-
-      // Show Connecting state
-      document.getElementById('initialCard').style.display = 'none';
-      document.getElementById('waitingText').innerText = 'Connecting to friend... ⏳';
-      document.getElementById('waitingSub').innerText = 'Establishing secure P2P connection';
-      document.getElementById('pinDisplayBox').style.display = 'none';
-      document.getElementById('waitingCard').style.display = 'flex';
-
-      conn = peer.connect('viku-' + pin, { reliable: true });
-      bindConnEvents();
-    }
-
-    // C) SOLO FLOW: Watch Solo
-    function openSolo() {
-      unlockMediaEngine();
-      enterTheater('Solo', false);
+      initYouTubePlayer();
     }
 
     function updateStatus(text, isConnected) {
@@ -635,30 +481,21 @@
       else if (text.includes('Waiting')) stat.classList.add('waiting');
     }
 
-    // Leave Room (Complete Clean Reset)
     function leaveRoom() {
-      if (conn && conn.open) {
-        conn.send({ cmd: 'FRIEND_LEFT' });
-        conn.close();
-      }
+      if (conn && conn.open) { conn.send({ cmd: 'FRIEND_LEFT' }); conn.close(); }
       conn = null;
-
-      if (player && typeof player.stopVideo === 'function') {
-        player.stopVideo();
-      }
+      if (player && typeof player.stopVideo === 'function') { player.stopVideo(); }
       currentVid = null;
+      
       document.getElementById('welcomeScreen').style.display = 'flex';
       document.getElementById('chatLogs').innerHTML = '<div class="chat-watermark">VIKU</div>';
-
-      // Reset lobby overlay
       document.getElementById('lobbyOverlay').style.display = 'flex';
       document.getElementById('initialCard').style.display = 'flex';
       document.getElementById('waitingCard').style.display = 'none';
       document.getElementById('theaterRoom').style.display = 'none';
       document.getElementById('leaveBtn').style.display = 'none';
-
+      
       updateStatus('Lobby', false);
-
       if (peer) peer.destroy();
       document.getElementById('friendPin').value = '';
       window.location.hash = '';
@@ -671,47 +508,11 @@
       banner.className = 'toast-banner' + (isAlert ? ' alert' : '');
       banner.classList.add('show');
       clearTimeout(toastTimer);
-      toastTimer = setTimeout(() => {
-        banner.classList.remove('show');
-      }, 3500);
+      toastTimer = setTimeout(() => { banner.classList.remove('show'); }, 3500);
     }
 
-    window.addEventListener('pageshow', (e) => {
-      if (e.persisted) {
-        document.getElementById('lobbyOverlay').style.display = 'flex';
-      }
-    });
-
-    window.addEventListener('resize', () => {
-      const theater = document.getElementById('theaterRoom');
-      if (theater.style.display !== 'none') {
-        theater.style.display = window.innerWidth >= 850 ? 'grid' : 'flex';
-      }
-    });
-
-    function bindConnEvents() {
-      // TRULY CONNECTED EVENT
-      conn.on('open', () => {
-        enterTheater('Connected', true);
-        showToast('Connected to friend! ⚡');
-
-        if (currentVid && player && player.getCurrentTime) {
-          conn.send({ 
-            cmd: 'LOAD_VIDEO', 
-            videoId: currentVid, 
-            time: player.getCurrentTime(), 
-            isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
-          });
-        }
-      });
-      
-      conn.on('data', handleRemoteCommand);
-      conn.on('close', handleFriendDisconnect);
-      conn.on('error', (err) => {
-        showToast('Connection dropped', true);
-        leaveRoom();
-      });
-    }
+    window.addEventListener('pageshow', (e) => { if (e.persisted) document.getElementById('lobbyOverlay').style.display = 'flex'; });
+    window.addEventListener('resize', () => { const th = document.getElementById('theaterRoom'); if (th.style.display !== 'none') th.style.display = window.innerWidth >= 850 ? 'grid' : 'flex'; });
 
     function handleFriendDisconnect() {
       updateStatus('Solo', false);
@@ -722,88 +523,48 @@
     function playVideoById(videoId, startSeconds = 0, autoPlay = true) {
       currentVid = videoId;
       document.getElementById('welcomeScreen').style.display = 'none';
-
+      if (!player) initYouTubePlayer();
       if (player && isPlayerReady) {
-        player.loadVideoById({
-          videoId: videoId,
-          startSeconds: startSeconds
-        });
-        if (autoPlay) {
-          player.unMute();
-          player.playVideo();
-        } else {
-          setTimeout(() => player.pauseVideo(), 100);
-        }
+        player.loadVideoById({ videoId: videoId, startSeconds: startSeconds });
+        if (autoPlay) { player.unMute(); player.playVideo(); } else { setTimeout(() => player.pauseVideo(), 100); }
       }
     }
 
     function onPlayerStateChange(e) {
-      if (isRemoteAction || !player) return;
+      if (isRemoteAction || !player || !conn || !conn.open) return;
       const t = player.getCurrentTime();
-
-      if (e.data === YT.PlayerState.PLAYING) {
-        if (conn && conn.open) conn.send({ cmd: 'PLAY', time: t });
-      } else if (e.data === YT.PlayerState.PAUSED) {
-        if (conn && conn.open) conn.send({ cmd: 'PAUSE', time: t });
-      }
+      if (e.data === YT.PlayerState.PLAYING) { conn.send({ cmd: 'PLAY', time: t }); } 
+      else if (e.data === YT.PlayerState.PAUSED) { conn.send({ cmd: 'PAUSE', time: t }); }
     }
 
     function trackPlaybackJump() {
-      if (!player || !isPlayerReady || isRemoteAction) return;
+      if (!player || !isPlayerReady || isRemoteAction || !conn || !conn.open) return;
       const t = player.getCurrentTime();
       if (Math.abs(t - lastKnownPos) > 1.2 && player.getPlayerState() !== YT.PlayerState.BUFFERING) {
-        if (conn && conn.open) {
-          conn.send({ 
-            cmd: 'SEEK', 
-            time: t, 
-            isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING)
-          });
-        }
+        conn.send({ cmd: 'SEEK', time: t, isPlaying: (player.getPlayerState() === YT.PlayerState.PLAYING) });
       }
       lastKnownPos = t;
     }
 
     // 4. Remote Command Handler
     function handleRemoteCommand(d) {
-      if (d.cmd === 'FRIEND_LEFT') {
-        handleFriendDisconnect();
-        return;
-      }
-
-      if (d.cmd === 'MSG') {
-        addMessage(d.text, 'them');
-        return;
-      }
+      if (d.cmd === 'FRIEND_LEFT') { handleFriendDisconnect(); return; }
+      if (d.cmd === 'MSG') { addMessage(d.text, 'them'); return; }
 
       isRemoteAction = true;
 
-      if (d.cmd === 'LOAD_VIDEO') {
-        playVideoById(d.videoId, d.time || 0, d.isPlaying);
-      }
-
+      if (d.cmd === 'LOAD_VIDEO') { playVideoById(d.videoId, d.time || 0, d.isPlaying); }
       if (d.cmd === 'PLAY' && player) {
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) {
-          player.seekTo(d.time, true);
-        }
-        player.unMute();
-        player.playVideo();
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) player.seekTo(d.time, true);
+        player.unMute(); player.playVideo();
       }
-
       if (d.cmd === 'PAUSE' && player) {
         player.pauseVideo();
-        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) {
-          player.seekTo(d.time, true);
-        }
+        if (Math.abs(player.getCurrentTime() - d.time) > 0.4) player.seekTo(d.time, true);
       }
-
       if (d.cmd === 'SEEK' && player) {
         player.seekTo(d.time, true);
-        if (d.isPlaying) {
-          player.unMute();
-          player.playVideo();
-        } else {
-          player.pauseVideo();
-        }
+        if (d.isPlaying) { player.unMute(); player.playVideo(); } else { player.pauseVideo(); }
       }
 
       setTimeout(() => {
@@ -817,7 +578,6 @@
       const input = document.getElementById('chatInput');
       const text = input.value.trim();
       if (!text) return;
-
       addMessage(text, 'me');
       if (conn && conn.open) conn.send({ cmd: 'MSG', text: text });
       input.value = '';
@@ -836,29 +596,17 @@
     function handleTyping(e) {
       const q = e.target.value.trim();
       clearTimeout(suggestTimer);
-
-      if (!q || extractId(q)) {
-        hideSuggestions();
-        return;
-      }
-
-      suggestTimer = setTimeout(() => {
-        fetchSuggestions(q);
-      }, 200);
+      if (!q || extractId(q)) { hideSuggestions(); return; }
+      suggestTimer = setTimeout(() => { fetchSuggestions(q); }, 200);
     }
 
     function fetchSuggestions(query) {
       const old = document.getElementById('yt-suggest-script');
       if (old) old.remove();
-
       window.handleYTSuggest = function(data) {
-        if (data && data[1] && data[1].length) {
-          showSuggestions(data[1].map(item => item[0]));
-        } else {
-          hideSuggestions();
-        }
+        if (data && data[1] && data[1].length) showSuggestions(data[1].map(item => item[0]));
+        else hideSuggestions();
       };
-
       const script = document.createElement('script');
       script.id = 'yt-suggest-script';
       script.src = `https://suggestqueries.google.com/complete/search?client=youtube&ds=yt&q=${encodeURIComponent(query)}&jsonp=handleYTSuggest`;
@@ -871,36 +619,17 @@
       list.slice(0, 5).forEach(term => {
         const item = document.createElement('div');
         item.className = 'suggest-item';
-        item.innerHTML = `
-          <svg class="suggest-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="11" cy="11" r="8"></circle>
-            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-          </svg>
-          <span>${term}</span>
-        `;
-        item.onclick = () => {
-          document.getElementById('searchBox').value = term;
-          hideSuggestions();
-          searchOrPlay();
-        };
+        item.innerHTML = `<svg class="suggest-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><span>${term}</span>`;
+        item.onclick = () => { document.getElementById('searchBox').value = term; hideSuggestions(); searchOrPlay(); };
         box.appendChild(item);
       });
       box.style.display = 'flex';
     }
 
-    function hideSuggestions() {
-      const box = document.getElementById('suggestBox');
-      box.innerHTML = '';
-      box.style.display = 'none';
-    }
+    function hideSuggestions() { document.getElementById('suggestBox').style.display = 'none'; }
+    document.addEventListener('click', (e) => { if (!e.target.closest('#searchBox') && !e.target.closest('#suggestBox')) hideSuggestions(); });
 
-    document.addEventListener('click', (e) => {
-      if (!e.target.closest('#searchBox') && !e.target.closest('#suggestBox')) {
-        hideSuggestions();
-      }
-    });
-
-    // 7. Fast Multi-Server YouTube Search
+    // 7. Search
     function extractId(url) {
       const m = url.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^&?/\s]{11})/);
       return m ? m[1] : null;
@@ -908,8 +637,7 @@
 
     function formatTime(sec) {
       if (!sec || isNaN(sec)) return '';
-      const m = Math.floor(sec / 60);
-      const s = Math.floor(sec % 60);
+      const m = Math.floor(sec / 60); const s = Math.floor(sec % 60);
       return `${m}:${s < 10 ? '0' : ''}${s}`;
     }
 
@@ -921,36 +649,18 @@
         clearTimeout(timer);
         if (!res.ok) throw new Error('Failed');
         const data = await res.json();
-
         let items = [];
         if (Array.isArray(data)) {
-          items = data.filter(v => v.type === 'video' || v.videoId).map(v => ({
-            id: v.videoId,
-            title: v.title,
-            author: v.author || 'YouTube',
-            thumb: (v.videoThumbnails && v.videoThumbnails[0]?.url) || `https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`,
-            duration: formatTime(v.lengthSeconds)
-          }));
+          items = data.filter(v => v.type === 'video' || v.videoId).map(v => ({ id: v.videoId, title: v.title, author: v.author || 'YouTube', thumb: (v.videoThumbnails && v.videoThumbnails[0]?.url) || `https://img.youtube.com/vi/${v.videoId}/mqdefault.jpg`, duration: formatTime(v.lengthSeconds) }));
         } else if (data?.items) {
           items = data.items.filter(v => v.type === 'stream' || (v.url && v.url.includes('watch?v='))).map(v => {
-            const m = v.url.match(/v=([^&]+)/);
-            const vid = m ? m[1] : '';
-            return {
-              id: vid,
-              title: v.title,
-              author: v.uploaderName || 'YouTube',
-              thumb: v.thumbnail || `https://img.youtube.com/vi/${vid}/mqdefault.jpg`,
-              duration: formatTime(v.duration)
-            };
+            const m = v.url.match(/v=([^&]+)/); const vid = m ? m[1] : '';
+            return { id: vid, title: v.title, author: v.uploaderName || 'YouTube', thumb: v.thumbnail || `https://img.youtube.com/vi/${vid}/mqdefault.jpg`, duration: formatTime(v.duration) };
           }).filter(v => v.id);
         }
-
         if (!items.length) throw new Error('No items');
         return items;
-      } catch(e) {
-        clearTimeout(timer);
-        throw e;
-      }
+      } catch(e) { clearTimeout(timer); throw e; }
     }
 
     async function searchOrPlay() {
@@ -961,9 +671,7 @@
       const directId = extractId(q);
       if (directId) {
         playVideoById(directId, 0, true);
-        if (conn && conn.open) {
-          conn.send({ cmd: 'LOAD_VIDEO', videoId: directId, time: 0, isPlaying: true });
-        }
+        if (conn && conn.open) conn.send({ cmd: 'LOAD_VIDEO', videoId: directId, time: 0, isPlaying: true });
         document.getElementById('searchList').style.display = 'none';
         return;
       }
@@ -972,37 +680,22 @@
       listEl.innerHTML = '<div style="font-size:12px;padding:12px;text-align:center;color:#64748b;">Searching YouTube...</div>';
       listEl.style.display = 'flex';
 
-      const queryEnc = encodeURIComponent(q);
       const searchEndpoints = [
-        `https://api.piped.private.coffee/search?q=${queryEnc}&filter=all`,
-        `https://pipedapi.leptons.xyz/search?q=${queryEnc}&filter=all`,
-        `https://inv.nadeko.net/api/v1/search?q=${queryEnc}&type=video`,
-        `https://yewtu.be/api/v1/search?q=${queryEnc}&type=video`,
-        `https://iv.ggtyler.dev/api/v1/search?q=${queryEnc}&type=video`
+        `https://api.piped.private.coffee/search?q=${encodeURIComponent(q)}&filter=all`,
+        `https://pipedapi.leptons.xyz/search?q=${encodeURIComponent(q)}&filter=all`,
+        `https://inv.nadeko.net/api/v1/search?q=${encodeURIComponent(q)}&type=video`
       ];
 
       try {
         const results = await Promise.any(searchEndpoints.map(url => fetchSearch(url)));
-        
         listEl.innerHTML = '';
         results.slice(0, 6).forEach(v => {
           const item = document.createElement('div');
           item.className = 'item';
-          item.innerHTML = `
-            <div class="thumb-wrap">
-              <img src="${v.thumb}" alt="thumb" loading="lazy" />
-              ${v.duration ? `<span class="duration-tag">${v.duration}</span>` : ''}
-            </div>
-            <div class="item-info">
-              <div class="item-t">${v.title}</div>
-              <div class="item-c">${v.author}</div>
-            </div>
-          `;
+          item.innerHTML = `<div class="thumb-wrap"><img src="${v.thumb}" alt="thumb" loading="lazy" />${v.duration ? `<span class="duration-tag">${v.duration}</span>` : ''}</div><div class="item-info"><div class="item-t">${v.title}</div><div class="item-c">${v.author}</div></div>`;
           item.onclick = () => {
             playVideoById(v.id, 0, true);
-            if (conn && conn.open) {
-              conn.send({ cmd: 'LOAD_VIDEO', videoId: v.id, time: 0, isPlaying: true });
-            }
+            if (conn && conn.open) conn.send({ cmd: 'LOAD_VIDEO', videoId: v.id, time: 0, isPlaying: true });
             listEl.style.display = 'none';
           };
           listEl.appendChild(item);
@@ -1013,38 +706,25 @@
     }
 
     // 8. Sharing & Helpers
-    function copyPin() {
-      navigator.clipboard.writeText(myActivePin);
-      showToast('PIN Copied: ' + myActivePin);
-    }
-
+    function copyPin() { navigator.clipboard.writeText(myActivePin); showToast('PIN Copied: ' + myActivePin); }
     function shareRoomLink() {
       const shareUrl = window.location.origin + window.location.pathname + '#' + myActivePin;
-      if (navigator.share) {
-        navigator.share({
-          title: 'Join my Viku room',
-          text: 'Watch YouTube together with me on Viku! Room PIN: ' + myActivePin,
-          url: shareUrl
-        }).catch(() => {});
-      } else {
-        navigator.clipboard.writeText(shareUrl);
-        showToast('Invite link copied');
-      }
+      if (navigator.share) { navigator.share({ title: 'Join my Viku room', text: 'Room PIN: ' + myActivePin, url: shareUrl }).catch(() => {}); }
+      else { navigator.clipboard.writeText(shareUrl); showToast('Invite link copied'); }
     }
-
     function toggleFullscreen() {
       const box = document.getElementById('playerBox');
-      if (!document.fullscreenElement) {
-        if (box.requestFullscreen) box.requestFullscreen();
-        else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen();
-      } else {
-        if (document.exitFullscreen) document.exitFullscreen();
-      }
+      if (!document.fullscreenElement) { if (box.requestFullscreen) box.requestFullscreen(); else if (box.webkitRequestFullscreen) box.webkitRequestFullscreen(); }
+      else { if (document.exitFullscreen) document.exitFullscreen(); }
     }
 
     window.onload = () => {
       initPeer();
-      checkUrlHash();
+      if (window.location.hash) {
+        const hashPin = window.location.hash.replace('#', '').trim();
+        if (hashPin && hashPin.length >= 4) document.getElementById('friendPin').value = hashPin;
+      }
+      setTimeout(initYouTubePlayer, 300);
     };
   </script>
 </body>
