@@ -6,7 +6,6 @@
   <meta name="referrer" content="origin" />
   <title>Viku - Watch Together</title>
 
-  <!-- Google Fonts: Outfit & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -103,7 +102,6 @@
     .badge.on { background: #dcfce7; color: #16a34a; }
     .badge.waiting { background: #fef3c7; color: #b45309; }
 
-    /* Leave Room Button in Corner */
     .leave-btn {
       display: none;
       padding: 5px 11px;
@@ -118,11 +116,8 @@
       gap: 4px;
     }
     .leave-btn:hover { background: #fee2e2; }
-    .leave-btn:active { transform: scale(0.96); }
 
-    /* ============================================================
-       LOBBY & WAITING OVERLAY
-       ============================================================ */
+    /* LOBBY OVERLAY */
     #lobbyOverlay {
       position: fixed;
       inset: 0;
@@ -133,7 +128,6 @@
       padding: 14px;
       overflow-y: auto;
     }
-
     .lobby-content {
       width: 100%;
       max-width: 500px;
@@ -142,7 +136,6 @@
       gap: 12px;
       margin-top: 25px;
     }
-
     .card {
       background: var(--card-bg);
       padding: 14px;
@@ -151,17 +144,8 @@
       display: flex;
       flex-direction: column;
       gap: 10px;
-      position: relative;
-    }
-    .title {
-      font-size: 11px;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
     }
 
-    /* Waiting State Card */
     .waiting-box {
       display: flex;
       flex-direction: column;
@@ -197,7 +181,6 @@
       border: 1px dashed #bfdbfe;
     }
 
-    /* Inputs & Buttons */
     .row { display: flex; gap: 8px; width: 100%; position: relative; }
     input {
       flex: 1;
@@ -226,7 +209,6 @@
       justify-content: center;
       white-space: nowrap;
     }
-    button:active { transform: scale(0.97); }
     button.gray { background: #f1f5f9; color: #334155; }
     button.outline { background: transparent; border: 1.5px solid var(--border); color: #475569; }
     button.large-btn { padding: 12px 18px; font-size: 14px; width: 100%; }
@@ -236,9 +218,7 @@
     .sep:not(:empty)::before { margin-right: 10px; }
     .sep:not(:empty)::after { margin-left: 10px; }
 
-    /* ============================================================
-       THEATER LAYOUT
-       ============================================================ */
+    /* THEATER LAYOUT */
     #theaterRoom {
       display: none;
       flex-direction: column;
@@ -250,7 +230,6 @@
       .theater-right { display: flex; flex-direction: column; gap: 10px; }
     }
 
-    /* 100% Sticky Video on Mobile */
     .sticky-player-box {
       position: sticky;
       top: 0;
@@ -258,10 +237,7 @@
       background: var(--bg);
       padding: 2px 0 6px 0;
     }
-
-    body.search-mode .sticky-player-box {
-      position: static !important;
-    }
+    body.search-mode .sticky-player-box { position: static !important; }
 
     .player-wrap {
       position: relative;
@@ -274,7 +250,6 @@
     }
     #ytPlayer { width: 100%; height: 100%; }
 
-    /* Welcome Banner */
     .welcome-screen {
       position: absolute;
       inset: 0;
@@ -292,7 +267,6 @@
       font-family: 'Outfit', sans-serif;
       font-size: 32px;
       font-weight: 800;
-      letter-spacing: -0.5px;
       background: linear-gradient(135deg, #60a5fa 0%, #c084fc 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
@@ -300,169 +274,59 @@
     }
     .welcome-sub { font-size: 13px; color: #94a3b8; }
 
-    .control-row {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      padding: 4px 2px 0 2px;
-    }
+    .control-row { display: flex; justify-content: flex-end; align-items: center; padding: 4px 2px 0 2px; }
 
-    /* Suggestions Dropdown */
+    /* Suggestions & List */
     .suggest-box {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12);
-      z-index: 60;
-      margin-top: 4px;
-      display: none;
-      flex-direction: column;
-      overflow: hidden;
+      position: absolute; top: 100%; left: 0; right: 0; background: #ffffff;
+      border: 1px solid var(--border); border-radius: 10px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.12); z-index: 60; margin-top: 4px;
+      display: none; flex-direction: column; overflow: hidden;
     }
     .suggest-item {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 14px;
-      font-size: 13px;
-      color: #1e293b;
-      cursor: pointer;
-      border-bottom: 1px solid #f1f5f9;
+      display: flex; align-items: center; gap: 10px; padding: 10px 14px; font-size: 13px; color: #1e293b; cursor: pointer; border-bottom: 1px solid #f1f5f9;
     }
-    .suggest-item:hover, .suggest-item:active { background: #f8fafc; color: var(--primary); }
+    .suggest-item:hover { background: #f8fafc; color: var(--primary); }
     .suggest-icon { color: #94a3b8; width: 14px; height: 14px; flex-shrink: 0; }
 
-    /* Video Results List */
-    .results-list {
-      max-height: 200px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-top: 4px;
-    }
-    .item {
-      display: flex;
-      gap: 10px;
-      padding: 6px;
-      border-radius: 10px;
-      background: #f8fafc;
-      cursor: pointer;
-      border: 1px solid var(--border);
-    }
+    .results-list { max-height: 200px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+    .item { display: flex; gap: 10px; padding: 6px; border-radius: 10px; background: #f8fafc; cursor: pointer; border: 1px solid var(--border); }
     .item:hover { background: #eff6ff; }
-    .thumb-wrap {
-      position: relative;
-      width: 95px;
-      height: 55px;
-      border-radius: 6px;
-      overflow: hidden;
-      flex-shrink: 0;
-      background: #cbd5e1;
-    }
+    .thumb-wrap { position: relative; width: 95px; height: 55px; border-radius: 6px; overflow: hidden; flex-shrink: 0; background: #cbd5e1; }
     .thumb-wrap img { width: 100%; height: 100%; object-fit: cover; }
-    .duration-tag {
-      position: absolute;
-      bottom: 2px;
-      right: 2px;
-      background: rgba(0, 0, 0, 0.85);
-      color: #fff;
-      font-size: 10px;
-      font-weight: 600;
-      padding: 1px 4px;
-      border-radius: 3px;
-    }
+    .duration-tag { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.85); color: #fff; font-size: 10px; font-weight: 600; padding: 1px 4px; border-radius: 3px; }
     .item-info { display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
     .item-t { font-size: 12px; font-weight: 600; color: #1e293b; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.3; }
     .item-c { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
-    /* ============================================================
-       LARGE CHAT (BABY PINK BACKGROUND + FAINT WATERMARK)
-       ============================================================ */
+    /* CHAT */
     .chat-card { display: flex; flex-direction: column; gap: 8px; }
     .chat-header { display: flex; justify-content: space-between; align-items: center; }
-    
     .chat-logs {
-      position: relative;
-      height: 250px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      padding: 12px;
-      border: 1.5px solid #fce7f3;
-      border-radius: 12px;
-      background: linear-gradient(180deg, #fff3f6 0%, #ffffff 100%);
+      position: relative; height: 250px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+      padding: 12px; border: 1.5px solid #fce7f3; border-radius: 12px; background: linear-gradient(180deg, #fff3f6 0%, #ffffff 100%);
     }
-
     .chat-watermark {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      font-family: 'Outfit', sans-serif;
-      font-size: 68px;
-      font-weight: 900;
-      letter-spacing: 8px;
-      color: rgba(244, 114, 182, 0.05);
-      pointer-events: none;
-      user-select: none;
-      z-index: 0;
+      position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+      font-family: 'Outfit', sans-serif; font-size: 68px; font-weight: 900; letter-spacing: 8px;
+      color: rgba(244, 114, 182, 0.05); pointer-events: none; user-select: none; z-index: 0;
     }
-
     .msg {
-      position: relative;
-      z-index: 2;
-      max-width: 82%;
-      padding: 7px 12px;
-      font-size: 13px;
-      line-height: 1.4;
-      word-break: break-word;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+      position: relative; z-index: 2; max-width: 82%; padding: 7px 12px; font-size: 13px; line-height: 1.4;
+      word-break: break-word; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
     }
-    .msg.me {
-      align-self: flex-end;
-      background: var(--primary);
-      color: #ffffff;
-      border-radius: 14px 14px 2px 14px;
-    }
-    .msg.them {
-      align-self: flex-start;
-      background: #ffffff;
-      color: #0f172a;
-      border: 1px solid #fce7f3;
-      border-radius: 14px 14px 14px 2px;
-    }
+    .msg.me { align-self: flex-end; background: var(--primary); color: #ffffff; border-radius: 14px 14px 2px 14px; }
+    .msg.them { align-self: flex-start; background: #ffffff; color: #0f172a; border: 1px solid #fce7f3; border-radius: 14px 14px 14px 2px; }
 
-    /* ============================================================
-       LAPTOP / DESKTOP (2.2:1 Ratio)
-       ============================================================ */
     @media (min-width: 850px) {
       body { padding: 20px; }
       .container { max-width: 1300px; }
-      
-      #theaterRoom {
-        display: none;
-        grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr);
-        gap: 20px;
-        align-items: start;
-      }
+      #theaterRoom { grid-template-columns: minmax(0, 2.2fr) minmax(340px, 1fr); gap: 20px; align-items: start; }
       .theater-left { display: flex; flex-direction: column; gap: 8px; }
       .theater-right { display: flex; flex-direction: column; gap: 10px; }
-      .sticky-player-box {
-        position: static;
-        padding: 0;
-      }
-      .chat-logs {
-        height: 340px;
-      }
-      .chat-watermark {
-        font-size: 90px;
-      }
+      .sticky-player-box { position: static; padding: 0; }
+      .chat-logs { height: 340px; }
+      .chat-watermark { font-size: 90px; }
     }
   </style>
 </head>
@@ -505,7 +369,7 @@
         <button class="outline" onclick="openSolo()">Watch Solo (No Friend)</button>
       </div>
 
-      <!-- Host Waiting Card -->
+      <!-- Connecting/Waiting Card -->
       <div id="waitingCard" class="card" style="display: none;">
         <div class="waiting-box">
           <div class="pulse-loader">
@@ -518,15 +382,16 @@
           </div>
 
           <div>
-            <div style="font-size: 16px; font-weight: 700; color: #0f172a;">Waiting for friend to join...</div>
-            <div style="font-size: 12px; color: var(--muted); margin-top: 2px;">Share your Room PIN with your friend</div>
+            <div id="waitingText" style="font-size: 16px; font-weight: 700; color: #0f172a;">Waiting for friend to join...</div>
+            <div id="waitingSub" style="font-size: 12px; color: var(--muted); margin-top: 2px;">Share your Room PIN with your friend</div>
           </div>
 
-          <div id="displayWaitingPin" class="pin-display">.....</div>
-
-          <div class="row" style="max-width: 280px;">
-            <button class="gray" style="flex: 1;" onclick="copyPin()">Copy PIN</button>
-            <button style="flex: 1;" onclick="shareRoomLink()">Share 🔗</button>
+          <div id="pinDisplayBox" style="width: 100%;">
+            <div id="displayWaitingPin" class="pin-display">.....</div>
+            <div class="row" style="max-width: 280px; margin: 14px auto 0 auto;">
+              <button class="gray" style="flex: 1;" onclick="copyPin()">Copy PIN</button>
+              <button style="flex: 1;" onclick="shareRoomLink()">Share 🔗</button>
+            </div>
           </div>
 
           <button class="outline" style="font-size: 12px; padding: 6px 12px; margin-top: 4px;" onclick="leaveRoom()">Cancel Room</button>
@@ -565,7 +430,7 @@
 
       <!-- RIGHT SIDE: Search Bar & Live Chat -->
       <div class="theater-right">
-        <!-- Search Card with Auto-Suggest -->
+        <!-- Search Card -->
         <div class="card" id="searchCard">
           <div class="title">Search YouTube or Paste Link</div>
           <div class="row">
@@ -574,14 +439,12 @@
                    oninput="handleTyping(event)" 
                    onkeydown="if(event.key==='Enter') searchOrPlay()" />
             <button onclick="searchOrPlay()">Search</button>
-
             <div id="suggestBox" class="suggest-box"></div>
           </div>
-
           <div id="searchList" class="results-list" style="display: none;"></div>
         </div>
 
-        <!-- Big Live Chat Card -->
+        <!-- Chat Card -->
         <div class="card chat-card" id="chatCard">
           <div class="chat-header">
             <div class="title">Live Chat</div>
@@ -609,10 +472,8 @@
     let isRemoteAction = false;
     let lastKnownPos = 0;
 
-    // 1. YouTube Iframe Initializer (Fixed for Fast Desktop Browsers)
-    function initYouTubePlayer() {
-      if (player || !window.YT || !window.YT.Player) return;
-
+    // 1. YouTube Iframe Initialization
+    function onYouTubeIframeAPIReady() {
       player = new YT.Player('ytPlayer', {
         height: '100%',
         width: '100%',
@@ -633,23 +494,18 @@
       });
     }
 
-    // Window global callback for YouTube
-    window.onYouTubeIframeAPIReady = initYouTubePlayer;
-
-    // 2. Peer Setup with Google STUN Servers (Fixes Wi-Fi Router / NAT Block)
+    // 2. Peer Setup (With TURN Servers for strict Laptop Wi-Fi)
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
       document.getElementById('displayWaitingPin').innerText = myActivePin;
 
-      // Google Public STUN Servers to bypass Wi-Fi vs Mobile Network NAT
+      // Google STUN + OpenRelay TURN (Bypasses all network blocks)
       const peerConfig = {
         config: {
           iceServers: [
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun2.l.google.com:19302' },
-            { urls: 'stun:stun3.l.google.com:19302' },
-            { urls: 'stun:stun4.l.google.com:19302' }
+            { urls: 'turn:openrelay.metered.ca:80', username: 'openrelayproject', credential: 'openrelayproject' },
+            { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' }
           ]
         }
       };
@@ -657,17 +513,17 @@
       peer = new Peer('viku-' + myActivePin, peerConfig);
 
       peer.on('connection', (c) => {
+        // FRIEND JOINED HOST!
         conn = c;
         bindConnEvents();
-        showToast('Friend joined the room');
-        enterTheater('Connected', true);
       });
 
       peer.on('error', (err) => {
         if (err.type === 'unavailable-id') {
           initPeer();
         } else {
-          showToast('Connection error: ' + err.type, true);
+          showToast('Connection error', true);
+          leaveRoom();
         }
       });
 
@@ -690,15 +546,11 @@
 
       searchBox.addEventListener('focus', () => {
         document.body.classList.add('search-mode');
-        setTimeout(() => {
-          searchCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }, 250);
+        setTimeout(() => { searchCard.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 250);
       });
 
       searchBox.addEventListener('blur', () => {
-        setTimeout(() => {
-          document.body.classList.remove('search-mode');
-        }, 200);
+        setTimeout(() => { document.body.classList.remove('search-mode'); }, 200);
       });
 
       chatInput.addEventListener('focus', () => {
@@ -710,7 +562,6 @@
 
     // Direct User Tap clears Autoplay Restrictions
     function unlockMediaEngine() {
-      initYouTubePlayer();
       if (player && typeof player.playVideo === 'function') {
         try {
           player.mute();
@@ -720,18 +571,27 @@
             player.unMute();
           }, 80);
         } catch(e) {}
+      } else if (window.YT && window.YT.Player) {
+        onYouTubeIframeAPIReady();
       }
     }
 
     // A) HOST FLOW: Create Room -> Shows Waiting Card
     function createRoomAsHost() {
       unlockMediaEngine();
+      
       document.getElementById('initialCard').style.display = 'none';
+      
+      // Show waiting screen with PIN
+      document.getElementById('waitingText').innerText = 'Waiting for friend to join...';
+      document.getElementById('waitingSub').innerText = 'Share your Room PIN with your friend';
+      document.getElementById('pinDisplayBox').style.display = 'block';
       document.getElementById('waitingCard').style.display = 'flex';
+      
       updateStatus('Waiting for friend', false);
     }
 
-    // Enter Theater: Unhides Video Player & Chat
+    // Enter Theater: Unhides Video Player & Chat (Only called when truly connected)
     function enterTheater(mode, showChat) {
       document.getElementById('lobbyOverlay').style.display = 'none';
       document.getElementById('leaveBtn').style.display = 'inline-flex';
@@ -741,9 +601,6 @@
       
       document.getElementById('chatCard').style.display = showChat ? 'flex' : 'none';
       updateStatus(mode, mode === 'Connected');
-
-      // Make sure player is ready on desktop
-      initYouTubePlayer();
     }
 
     // B) FRIEND FLOW: Join Room
@@ -753,10 +610,15 @@
       
       unlockMediaEngine();
 
+      // Show Connecting state
+      document.getElementById('initialCard').style.display = 'none';
+      document.getElementById('waitingText').innerText = 'Connecting to friend... ⏳';
+      document.getElementById('waitingSub').innerText = 'Establishing secure P2P connection';
+      document.getElementById('pinDisplayBox').style.display = 'none';
+      document.getElementById('waitingCard').style.display = 'flex';
+
       conn = peer.connect('viku-' + pin, { reliable: true });
       bindConnEvents();
-
-      enterTheater('Connected', true);
     }
 
     // C) SOLO FLOW: Watch Solo
@@ -828,8 +690,11 @@
     });
 
     function bindConnEvents() {
+      // TRULY CONNECTED EVENT
       conn.on('open', () => {
-        updateStatus('Connected', true);
+        enterTheater('Connected', true);
+        showToast('Connected to friend! ⚡');
+
         if (currentVid && player && player.getCurrentTime) {
           conn.send({ 
             cmd: 'LOAD_VIDEO', 
@@ -839,24 +704,24 @@
           });
         }
       });
+      
       conn.on('data', handleRemoteCommand);
       conn.on('close', handleFriendDisconnect);
       conn.on('error', (err) => {
-        showToast('Connection error', true);
+        showToast('Connection dropped', true);
+        leaveRoom();
       });
     }
 
     function handleFriendDisconnect() {
       updateStatus('Solo', false);
-      showToast('Friend has left the room', true);
+      showToast('⚠️ Friend has left the room', true);
     }
 
     // 3. Play Video Engine
     function playVideoById(videoId, startSeconds = 0, autoPlay = true) {
       currentVid = videoId;
       document.getElementById('welcomeScreen').style.display = 'none';
-
-      if (!player) initYouTubePlayer();
 
       if (player && isPlayerReady) {
         player.loadVideoById({
@@ -1180,8 +1045,6 @@
     window.onload = () => {
       initPeer();
       checkUrlHash();
-      // Ensure YouTube API triggers on fast loading laptop browsers
-      setTimeout(initYouTubePlayer, 300);
     };
   </script>
 </body>
