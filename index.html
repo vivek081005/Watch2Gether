@@ -50,6 +50,7 @@
     .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; background: #f1f5f9; color: var(--muted); text-transform: uppercase; }
     .badge.on { background: #dcfce7; color: #16a34a; }
     .badge.waiting { background: #fef3c7; color: #b45309; }
+    .badge.error { background: #fee2e2; color: #991b1b; }
 
     .leave-btn {
       display: none; padding: 5px 11px; font-size: 11px; font-weight: 700; border-radius: 20px; border: 1px solid #fecaca;
@@ -301,7 +302,7 @@
 
   <script>
     let player = null, peer = null, conn = null, currentVid = null;
-    let suggestTimer = null, toastTimer = null;
+    let suggestTimer = null, toastTimer = null, connectionTimeout = null;
     let isPlayerReady = false;
     let myActivePin = null;
     let isRemoteAction = false;
@@ -327,7 +328,7 @@
     }
     window.onYouTubeIframeAPIReady = initYouTubePlayer;
 
-    // 2. Powerful WebRTC Setup with STUN + TURN Relays for Hotspot & Strict Firewalls
+    // 2. Powerful WebRTC Setup with STUN + TURN Relays
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
       document.getElementById('displayWaitingPin').innerText = myActivePin;
@@ -335,27 +336,25 @@
       peer = new Peer('viku-' + myActivePin, {
         config: {
           iceServers: [
-            // Standard STUN servers
             { urls: 'stun:stun.l.google.com:19302' },
-            { urls: 'stun:stun1.l.google.com:19302' },
-            // POWERFUL TURN RELAY (Fixes Mobile Hotspot / Strict Laptop Wi-Fi NAT blocks)
+            { urls: 'stun:global.stun.twilio.com:3478' },
             { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
             { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
             { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
           ]
         },
-        debug: 1
+        debug: 0
       });
 
       // HOST SIDE: Waiting for friend to connect
       peer.on('connection', (c) => {
         conn = c;
         c.on('data', (d) => {
-          // PING-PONG HANDSHAKE: Ensure connection is 100% active before opening UI
+          // PING-PONG HANDSHAKE
           if (d.cmd === 'PING') {
             c.send({ cmd: 'PONG' });
             enterTheater('Connected', true);
-            showToast('Friend joined the room');
+            showToast('Friend joined the room! ⚡');
             
             if (currentVid && player && player.getCurrentTime) {
               c.send({ cmd: 'LOAD_VIDEO', videoId: currentVid, time: player.getCurrentTime(), isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING });
@@ -365,7 +364,6 @@
           }
         });
         c.on('close', handleFriendDisconnect);
-        c.on('error', () => { showToast('Connection dropped', true); leaveRoom(); });
       });
 
       peer.on('error', (err) => {
@@ -424,7 +422,7 @@
       updateStatus('Waiting', false);
     }
 
-    // B) FRIEND: Join Room
+    // B) FRIEND: Join Room (With Auto-Timeout for Network Blocks)
     function connectFriend() {
       const pin = document.getElementById('friendPin').value.trim();
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
@@ -434,11 +432,18 @@
 
       document.getElementById('initialCard').style.display = 'none';
       document.getElementById('waitingText').innerText = 'Connecting... ⏳';
-      document.getElementById('waitingSub').innerText = 'Establishing secure P2P connection';
+      document.getElementById('waitingSub').innerText = 'Bypassing strict network firewalls...';
       document.getElementById('pinDisplayBox').style.display = 'none';
       document.getElementById('waitingCard').style.display = 'flex';
 
-      conn = peer.connect('viku-' + pin, { reliable: true });
+      // REMOVED { reliable: true } to allow UDP relay traversal on Hotspots
+      conn = peer.connect('viku-' + pin);
+
+      // 12 Second Timeout Fail-Safe
+      connectionTimeout = setTimeout(() => {
+        alert("Connection Blocked 🚫\n\nYour Hotspot/Wi-Fi firewall is actively blocking Direct P2P Data. Please connect both devices to a standard Wi-Fi or try mobile data.");
+        leaveRoom();
+      }, 12000);
 
       // FRIEND SIDE HANDSHAKE
       conn.on('open', () => {
@@ -447,14 +452,16 @@
 
       conn.on('data', (d) => {
         if (d.cmd === 'PONG') {
+          // Handshake complete! Clear timeout and open Theater
+          clearTimeout(connectionTimeout);
           enterTheater('Connected', true);
+          showToast('Connected to friend! ⚡');
         } else {
           handleRemoteCommand(d);
         }
       });
 
       conn.on('close', handleFriendDisconnect);
-      conn.on('error', () => { showToast('Failed to connect', true); leaveRoom(); });
     }
 
     // C) SOLO FLOW
@@ -480,11 +487,18 @@
       const stat = document.getElementById('stat');
       stat.innerText = text;
       stat.className = 'badge';
-      if (isConnected) stat.classList.add('on');
-      else if (text.includes('Waiting')) stat.classList.add('waiting');
+      if (isConnected) {
+        stat.classList.add('on');
+      } else if (text.includes('Waiting')) {
+        stat.classList.add('waiting');
+      } else if (text.includes('Error') || text.includes('Drop')) {
+        stat.classList.add('error');
+      }
     }
 
     function leaveRoom() {
+      if(connectionTimeout) clearTimeout(connectionTimeout);
+
       if (conn && conn.open) { conn.send({ cmd: 'FRIEND_LEFT' }); conn.close(); }
       conn = null;
       if (player && typeof player.stopVideo === 'function') { player.stopVideo(); }
@@ -519,7 +533,7 @@
 
     function handleFriendDisconnect() {
       updateStatus('Solo', false);
-      showToast('Friend has left the room', true);
+      showToast('⚠️ Friend has left the room', true);
     }
 
     // 3. Play Video Engine
@@ -595,7 +609,7 @@
       box.scrollTop = box.scrollHeight;
     }
 
-    // 6. YouTube Auto-Suggestions (JSONP)
+    // 6. YouTube Auto-Suggestions
     function handleTyping(e) {
       const q = e.target.value.trim();
       clearTimeout(suggestTimer);
