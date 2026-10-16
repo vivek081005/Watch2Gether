@@ -505,7 +505,7 @@
         <button class="outline" onclick="openSolo()">Watch Solo (No Friend)</button>
       </div>
 
-      <!-- Host Waiting Card (Create Room karte hi sirf ye dikhega) -->
+      <!-- Host Waiting Card -->
       <div id="waitingCard" class="card" style="display: none;">
         <div class="waiting-box">
           <div class="pulse-loader">
@@ -535,7 +535,7 @@
     </div>
   </div>
 
-  <!-- 2. THEATER (Friend Connect ya Solo par hi visible hoga) -->
+  <!-- 2. THEATER (Renders underneath) -->
   <div class="container">
     <div class="header">
       <div class="logo">▶ Viku</div>
@@ -609,8 +609,10 @@
     let isRemoteAction = false;
     let lastKnownPos = 0;
 
-    // 1. YouTube Iframe Initialization
-    function onYouTubeIframeAPIReady() {
+    // 1. YouTube Iframe Initializer (Fixed for Fast Desktop Browsers)
+    function initYouTubePlayer() {
+      if (player || !window.YT || !window.YT.Player) return;
+
       player = new YT.Player('ytPlayer', {
         height: '100%',
         width: '100%',
@@ -631,23 +633,42 @@
       });
     }
 
-    // 2. Peer Setup
+    // Window global callback for YouTube
+    window.onYouTubeIframeAPIReady = initYouTubePlayer;
+
+    // 2. Peer Setup with Google STUN Servers (Fixes Wi-Fi Router / NAT Block)
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
       document.getElementById('displayWaitingPin').innerText = myActivePin;
 
-      peer = new Peer('viku-' + myActivePin);
+      // Google Public STUN Servers to bypass Wi-Fi vs Mobile Network NAT
+      const peerConfig = {
+        config: {
+          iceServers: [
+            { urls: 'stun:stun.l.google.com:19302' },
+            { urls: 'stun:stun1.l.google.com:19302' },
+            { urls: 'stun:stun2.l.google.com:19302' },
+            { urls: 'stun:stun3.l.google.com:19302' },
+            { urls: 'stun:stun4.l.google.com:19302' }
+          ]
+        }
+      };
+
+      peer = new Peer('viku-' + myActivePin, peerConfig);
 
       peer.on('connection', (c) => {
         conn = c;
         bindConnEvents();
-        // FRIEND CONNECTED -> Ab Theater Screen Open Hoga!
         showToast('Friend joined the room');
         enterTheater('Connected', true);
       });
 
       peer.on('error', (err) => {
-        if (err.type === 'unavailable-id') initPeer();
+        if (err.type === 'unavailable-id') {
+          initPeer();
+        } else {
+          showToast('Connection error: ' + err.type, true);
+        }
       });
 
       setupStickyRule();
@@ -687,8 +708,9 @@
       });
     }
 
-    // Direct User Tap clears Mobile Autoplay Restrictions
+    // Direct User Tap clears Autoplay Restrictions
     function unlockMediaEngine() {
+      initYouTubePlayer();
       if (player && typeof player.playVideo === 'function') {
         try {
           player.mute();
@@ -701,14 +723,11 @@
       }
     }
 
-    // A) HOST FLOW: Create Room -> Shows Waiting Card (Player/Chat Hidden)
+    // A) HOST FLOW: Create Room -> Shows Waiting Card
     function createRoomAsHost() {
       unlockMediaEngine();
-      
-      // Initial card hide, waiting card show
       document.getElementById('initialCard').style.display = 'none';
       document.getElementById('waitingCard').style.display = 'flex';
-      
       updateStatus('Waiting for friend', false);
     }
 
@@ -722,22 +741,25 @@
       
       document.getElementById('chatCard').style.display = showChat ? 'flex' : 'none';
       updateStatus(mode, mode === 'Connected');
+
+      // Make sure player is ready on desktop
+      initYouTubePlayer();
     }
 
-    // B) FRIEND FLOW: Join Room -> Enters Theater directly
+    // B) FRIEND FLOW: Join Room
     function connectFriend() {
       const pin = document.getElementById('friendPin').value.trim();
       if (!pin || pin.length < 5) return alert('Enter valid 5-digit PIN');
       
       unlockMediaEngine();
 
-      conn = peer.connect('viku-' + pin);
+      conn = peer.connect('viku-' + pin, { reliable: true });
       bindConnEvents();
 
       enterTheater('Connected', true);
     }
 
-    // C) SOLO FLOW: Watch Solo -> Enters Theater (Chat hidden)
+    // C) SOLO FLOW: Watch Solo
     function openSolo() {
       unlockMediaEngine();
       enterTheater('Solo', false);
@@ -819,6 +841,9 @@
       });
       conn.on('data', handleRemoteCommand);
       conn.on('close', handleFriendDisconnect);
+      conn.on('error', (err) => {
+        showToast('Connection error', true);
+      });
     }
 
     function handleFriendDisconnect() {
@@ -830,6 +855,8 @@
     function playVideoById(videoId, startSeconds = 0, autoPlay = true) {
       currentVid = videoId;
       document.getElementById('welcomeScreen').style.display = 'none';
+
+      if (!player) initYouTubePlayer();
 
       if (player && isPlayerReady) {
         player.loadVideoById({
@@ -1153,6 +1180,8 @@
     window.onload = () => {
       initPeer();
       checkUrlHash();
+      // Ensure YouTube API triggers on fast loading laptop browsers
+      setTimeout(initYouTubePlayer, 300);
     };
   </script>
 </body>
