@@ -155,27 +155,21 @@
     .msg.me { align-self: flex-end; background: var(--primary); color: #ffffff; border-radius: 14px 14px 2px 14px; }
     .msg.them { align-self: flex-start; background: #ffffff; color: #0f172a; border: 1px solid #fce7f3; border-radius: 14px 14px 14px 2px; }
 
-    /* ============================================================
-       LAPTOP / DESKTOP ALIGNMENT (Widened Video, perfectly aligned chat)
-       ============================================================ */
+    /* LAPTOP / DESKTOP ALIGNMENT */
     @media (min-width: 850px) {
       body { padding: 20px; }
       .container { max-width: 1400px; height: calc(100vh - 40px); display: flex; flex-direction: column; }
       
       #theaterRoom {
-        display: none;
-        grid-template-columns: 2.6fr 1fr; /* Make video significantly wider */
-        gap: 20px;
-        align-items: stretch; /* Forces both columns to match height */
-        flex: 1;
+        display: none; grid-template-columns: 2.6fr 1fr; gap: 20px; align-items: stretch; flex: 1;
       }
       .theater-left { display: flex; flex-direction: column; }
       .sticky-player-box { position: static; padding: 0; flex: 1; display: flex; flex-direction: column; }
-      .player-wrap { flex: 1; min-height: 480px; } /* Ensures video box takes all available space */
+      .player-wrap { flex: 1; min-height: 480px; }
       
       .theater-right { display: flex; flex-direction: column; gap: 10px; height: 100%; }
       .chat-card { flex: 1; display: flex; flex-direction: column; }
-      .chat-logs { flex: 1; height: auto; min-height: 250px; } /* Chat stretches down to exactly match video */
+      .chat-logs { flex: 1; height: auto; min-height: 250px; }
       .chat-watermark { font-size: 90px; }
     }
   </style>
@@ -246,7 +240,7 @@
     </div>
   </div>
 
-  <!-- 2. THEATER (Renders only after confirmed Ping-Pong connection) -->
+  <!-- 2. THEATER -->
   <div class="container">
     <div class="header">
       <div class="logo">▶ Viku</div>
@@ -333,20 +327,24 @@
     }
     window.onYouTubeIframeAPIReady = initYouTubePlayer;
 
-    // 2. Powerful WebRTC Setup (Bypasses Firewalls/NAT)
+    // 2. Powerful WebRTC Setup with STUN + TURN Relays for Hotspot & Strict Firewalls
     function initPeer() {
       myActivePin = Math.floor(10000 + Math.random() * 90000);
       document.getElementById('displayWaitingPin').innerText = myActivePin;
 
-      // Robust STUN servers for Mobile vs Laptop NAT penetration
       peer = new Peer('viku-' + myActivePin, {
         config: {
           iceServers: [
+            // Standard STUN servers
             { urls: 'stun:stun.l.google.com:19302' },
             { urls: 'stun:stun1.l.google.com:19302' },
-            { urls: 'stun:stun.cloudflare.com:3478' }
+            // POWERFUL TURN RELAY (Fixes Mobile Hotspot / Strict Laptop Wi-Fi NAT blocks)
+            { urls: "turn:openrelay.metered.ca:80", username: "openrelayproject", credential: "openrelayproject" },
+            { urls: "turn:openrelay.metered.ca:443", username: "openrelayproject", credential: "openrelayproject" },
+            { urls: "turn:openrelay.metered.ca:443?transport=tcp", username: "openrelayproject", credential: "openrelayproject" }
           ]
-        }
+        },
+        debug: 1
       });
 
       // HOST SIDE: Waiting for friend to connect
@@ -356,9 +354,8 @@
           // PING-PONG HANDSHAKE: Ensure connection is 100% active before opening UI
           if (d.cmd === 'PING') {
             c.send({ cmd: 'PONG' });
-            // Network is fully verified. Open Theater.
             enterTheater('Connected', true);
-            showToast('Friend joined the room! ⚡');
+            showToast('Friend joined the room');
             
             if (currentVid && player && player.getCurrentTime) {
               c.send({ cmd: 'LOAD_VIDEO', videoId: currentVid, time: player.getCurrentTime(), isPlaying: player.getPlayerState() === YT.PlayerState.PLAYING });
@@ -376,6 +373,15 @@
       });
 
       setupStickyRule();
+    }
+
+    function checkUrlHash() {
+      if (window.location.hash) {
+        const hashPin = window.location.hash.replace('#', '').trim();
+        if (hashPin && hashPin.length >= 4) {
+          document.getElementById('friendPin').value = hashPin;
+        }
+      }
     }
 
     function setupStickyRule() {
@@ -415,7 +421,7 @@
       document.getElementById('waitingSub').innerText = 'Share your Room PIN';
       document.getElementById('pinDisplayBox').style.display = 'block';
       document.getElementById('waitingCard').style.display = 'flex';
-      updateStatus('Waiting...', false);
+      updateStatus('Waiting', false);
     }
 
     // B) FRIEND: Join Room
@@ -436,15 +442,12 @@
 
       // FRIEND SIDE HANDSHAKE
       conn.on('open', () => {
-        // Send Ping to verify WebRTC data channel is actually transmitting
         conn.send({ cmd: 'PING' });
       });
 
       conn.on('data', (d) => {
         if (d.cmd === 'PONG') {
-          // Handshake complete. Theater is safe to open.
           enterTheater('Connected', true);
-          showToast('Connected to friend! ⚡');
         } else {
           handleRemoteCommand(d);
         }
@@ -516,7 +519,7 @@
 
     function handleFriendDisconnect() {
       updateStatus('Solo', false);
-      showToast('⚠️ Friend has left the room', true);
+      showToast('Friend has left the room', true);
     }
 
     // 3. Play Video Engine
